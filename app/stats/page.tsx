@@ -32,18 +32,35 @@ export default function StatsPage() {
   const [delegations, setDelegations] = useState<Delegation[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'monthly' | 'yearly'>('monthly');
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    // Ensure we're on the client side
+    setIsClient(true);
     fetchDelegations();
   }, []);
+
+  // Don't render until we're on the client side
+  if (!isClient) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   const fetchDelegations = async () => {
     try {
       const response = await fetch('/api/delegations');
       const data = await response.json();
-      setDelegations(data);
+      // Ensure data is an array
+      setDelegations(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching delegations:', error);
+      setDelegations([]);
     } finally {
       setLoading(false);
     }
