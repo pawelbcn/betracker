@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v1.1.0] - 2025-10-26
+
+### Added
+- Added Vercel deployment configuration and guide
+
+
 ## [v1.0.2] - 2025-10-26
 
 ### Security
