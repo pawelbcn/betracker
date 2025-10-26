@@ -11,6 +11,14 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 production.env
+env.local
+env.electron
+
+# API Keys and Secrets
+**/api-keys.txt
+**/secrets.json
+**/*secret*
+**/*key*
 
 # Next.js
 .next/
