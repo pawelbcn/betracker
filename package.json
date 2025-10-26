@@ -1,6 +1,6 @@
 {
   "name": "delegation-expense-tracker",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Delegation Expense Tracker - Next.js Application",
   "private": true,
   "scripts": {
