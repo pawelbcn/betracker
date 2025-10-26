@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-neutral-200;
+  }
+  
+  body {
+    @apply bg-neutral-50 text-neutral-900 font-sans antialiased;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply tracking-tight;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-white shadow-[0_2px_8px_rgba(0,0,0,0.05)] border border-neutral-200;
+  }
+  
+  .btn-primary {
+    @apply bg-neutral-900 text-white px-4 py-2 hover:bg-neutral-800 transition-colors font-medium;
+  }
+  
+  .btn-secondary {
+    @apply bg-neutral-200 text-neutral-900 px-4 py-2 hover:bg-neutral-300 transition-colors font-medium;
+  }
+}

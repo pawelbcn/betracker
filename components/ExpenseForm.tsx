@@ -1,0 +1,300 @@
+"use client";
+import { useState, useEffect } from 'react';
+import { X, Save } from 'lucide-react';
+
+interface ExpenseFormProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+  delegationId: string;
+  expense?: {
+    id: string;
+    date: string;
+    category: string;
+    amount: number;
+    currency: string;
+    description: string;
+  } | null;
+}
+
+export default function ExpenseForm({ isOpen, onClose, onSuccess, delegationId, expense }: ExpenseFormProps) {
+  const [formData, setFormData] = useState({
+    date: expense?.date ? expense.date.split('T')[0] : '',
+    category: expense?.category || '',
+    amount: expense?.amount || 0,
+    currency: expense?.currency || 'EUR',
+    description: expense?.description || ''
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Update form data when expense prop changes
+  useEffect(() => {
+    if (expense) {
+      setFormData({
+        date: expense.date ? expense.date.split('T')[0] : '',
+        category: expense.category || '',
+        amount: expense.amount || 0,
+        currency: expense.currency || 'EUR',
+        description: expense.description || ''
+      });
+    } else {
+      // Reset form for new expense
+      setFormData({
+        date: '',
+        category: '',
+        amount: 0,
+        currency: 'EUR',
+        description: ''
+      });
+    }
+  }, [expense]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    // Basic validation
+    if (!formData.date) {
+      setError('Date is required');
+      setLoading(false);
+      return;
+    }
+    if (!formData.category) {
+      setError('Category is required');
+      setLoading(false);
+      return;
+    }
+    if (formData.amount <= 0) {
+      setError('Amount must be greater than 0');
+      setLoading(false);
+      return;
+    }
+    if (!formData.currency) {
+      setError('Currency is required');
+      setLoading(false);
+      return;
+    }
+    if (!formData.description.trim()) {
+      setError('Description is required');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const url = expense ? `/api/expenses/${expense.id}` : '/api/expenses';
+      const method = expense ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...formData,
+          delegation_id: delegationId
+        }),
+      });
+
+      if (response.ok) {
+        onSuccess();
+        onClose();
+        // Reset form
+        setFormData({
+          date: '',
+          category: '',
+          amount: 0,
+          currency: 'EUR',
+          description: ''
+        });
+      } else {
+        const errorData = await response.json();
+        setError(errorData.error || 'Failed to save expense');
+      }
+    } catch (error) {
+      console.error('Error saving expense:', error);
+      setError('Network error. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: name === 'amount' ? parseFloat(value) || 0 : value
+    }));
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white shadow-xl max-w-lg w-full">
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-neutral-900">
+              {expense ? 'Edit Expense' : 'Add New Expense'}
+            </h2>
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-neutral-100 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200">
+              <p className="text-red-600 text-sm">{error}</p>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Date *
+                </label>
+                <input
+                  type="date"
+                  name="date"
+                  value={formData.date}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-3 py-2 border border-neutral-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Category *
+                </label>
+                <select
+                  name="category"
+                  value={formData.category}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-3 py-2 border border-neutral-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">Select Category</option>
+                  <option value="hotel">Hotel</option>
+                  <option value="flight">Flight</option>
+                  <option value="transport">Transport</option>
+                  <option value="taxi">Taxi</option>
+                  <option value="food">Food</option>
+                  <option value="misc">Miscellaneous</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Amount *
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  name="amount"
+                  value={formData.amount}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-3 py-2 border border-neutral-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="0.00"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Currency *
+                </label>
+                <select
+                  name="currency"
+                  value={formData.currency}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-3 py-2 border border-neutral-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  {/* Major European currencies */}
+                  <optgroup label="Major European">
+                    <option value="EUR">EUR - Euro</option>
+                    <option value="GBP">GBP - British Pound</option>
+                    <option value="CHF">CHF - Swiss Franc</option>
+                    <option value="NOK">NOK - Norwegian Krone</option>
+                    <option value="SEK">SEK - Swedish Krona</option>
+                    <option value="DKK">DKK - Danish Krone</option>
+                  </optgroup>
+                  
+                  {/* Central/Eastern European currencies */}
+                  <optgroup label="Central/Eastern European">
+                    <option value="PLN">PLN - Polish Złoty</option>
+                    <option value="HUF">HUF - Hungarian Forint</option>
+                    <option value="CZK">CZK - Czech Koruna</option>
+                    <option value="RON">RON - Romanian Leu</option>
+                    <option value="BGN">BGN - Bulgarian Lev</option>
+                    <option value="HRK">HRK - Croatian Kuna</option>
+                    <option value="RSD">RSD - Serbian Dinar</option>
+                  </optgroup>
+                  
+                  {/* Major global currencies */}
+                  <optgroup label="Major Global">
+                    <option value="USD">USD - US Dollar</option>
+                    <option value="CAD">CAD - Canadian Dollar</option>
+                    <option value="AUD">AUD - Australian Dollar</option>
+                    <option value="JPY">JPY - Japanese Yen</option>
+                    <option value="CNY">CNY - Chinese Yuan</option>
+                    <option value="INR">INR - Indian Rupee</option>
+                    <option value="BRL">BRL - Brazilian Real</option>
+                    <option value="MXN">MXN - Mexican Peso</option>
+                  </optgroup>
+                  
+                  {/* Middle East & Africa */}
+                  <optgroup label="Middle East & Africa">
+                    <option value="AED">AED - UAE Dirham</option>
+                    <option value="SAR">SAR - Saudi Riyal</option>
+                    <option value="ZAR">ZAR - South African Rand</option>
+                    <option value="EGP">EGP - Egyptian Pound</option>
+                  </optgroup>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-2">
+                Description *
+              </label>
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                required
+                rows={3}
+                className="w-full px-3 py-2 border border-neutral-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="e.g., Hotel Arkadia - 2 nights"
+              />
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 text-neutral-600 hover:text-neutral-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+              >
+                <Save className="w-4 h-4" />
+                {loading ? 'Saving...' : (expense ? 'Update' : 'Add')}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}

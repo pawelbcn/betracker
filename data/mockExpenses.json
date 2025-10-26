@@ -1,0 +1,49 @@
+{
+  "expenses": [
+    {
+      "id": "exp-001",
+      "delegation_id": "del-001",
+      "date": "2025-10-15",
+      "category": "hotel",
+      "amount": 190,
+      "currency": "EUR",
+      "description": "Hotel Arkadia - 2 nights"
+    },
+    {
+      "id": "exp-002",
+      "delegation_id": "del-001",
+      "date": "2025-10-15",
+      "category": "flight",
+      "amount": 120,
+      "currency": "EUR",
+      "description": "Return flight WAW-PEV"
+    },
+    {
+      "id": "exp-003",
+      "delegation_id": "del-002",
+      "date": "2025-10-20",
+      "category": "hotel",
+      "amount": 250,
+      "currency": "EUR",
+      "description": "Hotel Berlin Central - 2 nights"
+    },
+    {
+      "id": "exp-004",
+      "delegation_id": "del-002",
+      "date": "2025-10-20",
+      "category": "flight",
+      "amount": 180,
+      "currency": "EUR",
+      "description": "Return flight WAW-BER"
+    },
+    {
+      "id": "exp-005",
+      "delegation_id": "del-002",
+      "date": "2025-10-21",
+      "category": "misc",
+      "amount": 50,
+      "currency": "EUR",
+      "description": "Conference ticket"
+    }
+  ]
+}

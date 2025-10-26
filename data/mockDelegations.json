@@ -1,0 +1,28 @@
+{
+  "delegations": [
+    {
+      "id": "del-001",
+      "title": "Pécs Business Meeting",
+      "destination_country": "Hungary",
+      "destination_city": "Pécs",
+      "start_date": "2025-10-15",
+      "end_date": "2025-10-17",
+      "purpose": "Client project kickoff meeting",
+      "exchange_rate": 4.35,
+      "daily_allowance": 43,
+      "notes": "Meeting with DevTeam Hungary"
+    },
+    {
+      "id": "del-002",
+      "title": "Berlin Tech Conference",
+      "destination_country": "Germany",
+      "destination_city": "Berlin",
+      "start_date": "2025-10-20",
+      "end_date": "2025-10-22",
+      "purpose": "ReactEurope Conference",
+      "exchange_rate": 4.35,
+      "daily_allowance": 49,
+      "notes": "Speaking engagement on Next.js"
+    }
+  ]
+}
