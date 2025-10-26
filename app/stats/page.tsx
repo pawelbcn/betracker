@@ -34,6 +34,20 @@ export default function StatsPage() {
   const [viewMode, setViewMode] = useState<'monthly' | 'yearly'>('monthly');
   const [isClient, setIsClient] = useState(false);
 
+  const fetchDelegations = async () => {
+    try {
+      const response = await fetch('/api/delegations');
+      const data = await response.json();
+      // Ensure data is an array
+      setDelegations(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Error fetching delegations:', error);
+      setDelegations([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     // Ensure we're on the client side
     setIsClient(true);
@@ -51,20 +65,6 @@ export default function StatsPage() {
       </div>
     );
   }
-
-  const fetchDelegations = async () => {
-    try {
-      const response = await fetch('/api/delegations');
-      const data = await response.json();
-      // Ensure data is an array
-      setDelegations(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error('Error fetching delegations:', error);
-      setDelegations([]);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Get current month and year
   const now = new Date();
