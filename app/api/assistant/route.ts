@@ -121,7 +121,6 @@ ${conversationContext}`;
             purpose: parsedResponse.delegation.purpose,
             exchange_rate: parseFloat(parsedResponse.delegation.exchange_rate),
             daily_allowance: parseFloat(parsedResponse.delegation.daily_allowance),
-            notes: parsedResponse.delegation.notes || null,
           },
         });
 
@@ -166,7 +165,6 @@ ${conversationContext}`;
               purpose: parsedResponse.delegation.purpose,
             exchange_rate: parseFloat(parsedResponse.delegation.exchange_rate),
             daily_allowance: parseFloat(parsedResponse.delegation.daily_allowance),
-              notes: parsedResponse.delegation.notes || null,
           },
           });
 
@@ -182,7 +180,6 @@ ${conversationContext}`;
                 currency: expenseData.currency,
                   date: new Date(expenseData.date),
                 category: expenseData.category || 'Other',
-                notes: expenseData.notes || null,
               },
             });
             expenses.push(expense);

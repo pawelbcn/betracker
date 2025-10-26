@@ -121,7 +121,7 @@ export default function PersistentAIAssistant({
       // Handle the AI response based on action
       if (aiResponse.action === 'add_delegation' && aiResponse.delegation && allowNewDelegations) {
         // Check if delegation was automatically created (has delegation_id)
-        if (aiResponse.delegation_id) {
+        if (aiResponse.delegation_id && aiResponse.delegation) {
           // Delegation was automatically created, navigate to it
           setPendingVerification(null);
           const contextString = `${aiResponse.delegation.destination_city}, ${aiResponse.delegation.destination_country} (${aiResponse.delegation.start_date})`;
@@ -132,7 +132,7 @@ export default function PersistentAIAssistant({
           // Navigate to the delegation detail page
           if (onNavigateToDelegation) {
             setTimeout(() => {
-              onNavigateToDelegation(aiResponse.delegation_id);
+              onNavigateToDelegation(aiResponse.delegation_id!);
             }, 1500); // Small delay to show the success message
           }
         } else {
@@ -149,7 +149,7 @@ export default function PersistentAIAssistant({
         addFeedbackMessage(`I've added the expense "${aiResponse.expenses[0].description}" for ${aiResponse.expenses[0].amount} ${aiResponse.expenses[0].currency}.`);
       } else if (aiResponse.action === 'add_both' && allowNewDelegations) {
         // Check if delegation was automatically created (has delegation_id)
-        if (aiResponse.delegation_id) {
+        if (aiResponse.delegation_id && aiResponse.delegation) {
           // Delegation was automatically created, navigate to it
           setPendingVerification(null);
           const contextString = `${aiResponse.delegation.destination_city}, ${aiResponse.delegation.destination_country} (${aiResponse.delegation.start_date})`;
@@ -160,7 +160,7 @@ export default function PersistentAIAssistant({
           // Navigate to the delegation detail page
           if (onNavigateToDelegation) {
             setTimeout(() => {
-              onNavigateToDelegation(aiResponse.delegation_id);
+              onNavigateToDelegation(aiResponse.delegation_id!);
             }, 1500); // Small delay to show the success message
           }
         } else {
