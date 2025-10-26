@@ -14,7 +14,9 @@
     "changelog": "./update-changelog.sh",
     "version:patch": "npm version patch && ./update-changelog.sh \"Patch release\" \"Changed\"",
     "version:minor": "npm version minor && ./update-changelog.sh \"Minor release\" \"Changed\"",
-    "version:major": "npm version major && ./update-changelog.sh \"Major release\" \"Changed\""
+    "version:major": "npm version major && ./update-changelog.sh \"Major release\" \"Changed\"",
+    "vercel:deploy": "vercel --prod",
+    "vercel:preview": "vercel"
   },
   "dependencies": {
     "@prisma/client": "^6.17.1",
