@@ -125,7 +125,7 @@ ${conversationContext}`;
           },
         });
 
-        return NextResponse.json({
+          return NextResponse.json({
           type: 'delegation_created',
           message: `✅ Delegation "${delegation.title}" created successfully!`,
           delegation: delegation,
@@ -143,11 +143,10 @@ ${conversationContext}`;
             currency: parsedResponse.expense.currency,
             date: new Date(parsedResponse.expense.date),
             category: parsedResponse.expense.category || 'Other',
-            notes: parsedResponse.expense.notes || null,
           },
         });
 
-        return NextResponse.json({
+          return NextResponse.json({
           type: 'expense_added',
           message: `✅ Expense "${expense.description}" added successfully!`,
           expense: expense,
@@ -156,32 +155,32 @@ ${conversationContext}`;
 
       if (parsedResponse.action === 'add_both') {
         // Create delegation and add expenses
-        const delegation = await prisma.delegation.create({
-          data: {
+          const delegation = await prisma.delegation.create({
+            data: {
             id: `delegation_${Date.now()}`,
-            title: parsedResponse.delegation.title,
-            destination_country: parsedResponse.delegation.destination_country,
-            destination_city: parsedResponse.delegation.destination_city,
-            start_date: new Date(parsedResponse.delegation.start_date),
-            end_date: new Date(parsedResponse.delegation.end_date),
-            purpose: parsedResponse.delegation.purpose,
+              title: parsedResponse.delegation.title,
+              destination_country: parsedResponse.delegation.destination_country,
+              destination_city: parsedResponse.delegation.destination_city,
+              start_date: new Date(parsedResponse.delegation.start_date),
+              end_date: new Date(parsedResponse.delegation.end_date),
+              purpose: parsedResponse.delegation.purpose,
             exchange_rate: parseFloat(parsedResponse.delegation.exchange_rate),
             daily_allowance: parseFloat(parsedResponse.delegation.daily_allowance),
-            notes: parsedResponse.delegation.notes || null,
+              notes: parsedResponse.delegation.notes || null,
           },
-        });
+          });
 
         const expenses = [];
         if (parsedResponse.expenses && Array.isArray(parsedResponse.expenses)) {
-          for (const expenseData of parsedResponse.expenses) {
+            for (const expenseData of parsedResponse.expenses) {
             const expense = await prisma.expense.create({
-              data: {
+                data: {
                 id: `expense_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-                delegation_id: delegation.id,
+                  delegation_id: delegation.id,
                 description: expenseData.description,
                 amount: parseFloat(expenseData.amount),
                 currency: expenseData.currency,
-                date: new Date(expenseData.date),
+                  date: new Date(expenseData.date),
                 category: expenseData.category || 'Other',
                 notes: expenseData.notes || null,
               },
@@ -190,7 +189,7 @@ ${conversationContext}`;
           }
         }
 
-        return NextResponse.json({
+          return NextResponse.json({
           type: 'delegation_and_expenses_created',
           message: `✅ Delegation "${delegation.title}" and ${expenses.length} expenses created successfully!`,
           delegation: delegation,
@@ -208,7 +207,6 @@ ${conversationContext}`;
             currency: parsedResponse.expense.currency,
             date: new Date(parsedResponse.expense.date),
             category: parsedResponse.expense.category,
-            notes: parsedResponse.expense.notes,
           },
         });
 
@@ -230,7 +228,6 @@ ${conversationContext}`;
             currency: parsedResponse.expense.currency,
             date: new Date(parsedResponse.expense.date),
             category: parsedResponse.expense.category || 'Other',
-            notes: parsedResponse.expense.notes || null,
           },
         });
 
@@ -243,7 +240,7 @@ ${conversationContext}`;
 
       if (parsedResponse.action === 'ask_questions') {
         // Ask clarifying questions
-        return NextResponse.json({
+      return NextResponse.json({
           type: 'questions',
           message: parsedResponse.questions,
         });
@@ -259,7 +256,7 @@ ${conversationContext}`;
   } catch (error) {
     console.error('AI Assistant error:', error);
     return NextResponse.json(
-      { error: 'Failed to process request' },
+      { error: 'Failed to process request' }, 
       { status: 500 }
     );
   }
