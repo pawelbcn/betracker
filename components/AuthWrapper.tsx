@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 
 interface AuthWrapperProps {
   children: React.ReactNode;
@@ -11,11 +11,19 @@ export default function AuthWrapper({ children }: AuthWrapperProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
-    // Check if user is authenticated
-    const authenticated = sessionStorage.getItem('authenticated');
-    const username = sessionStorage.getItem('username');
+    // Skip authentication check for login page
+    if (pathname === '/login') {
+      setIsAuthenticated(true);
+      setIsLoading(false);
+      return;
+    }
+
+    // Check if user is authenticated (only on client side)
+    const authenticated = typeof window !== 'undefined' ? sessionStorage.getItem('authenticated') : null;
+    const username = typeof window !== 'undefined' ? sessionStorage.getItem('username') : null;
     
     if (authenticated === 'true' && username === 'pawel') {
       setIsAuthenticated(true);
@@ -25,7 +33,7 @@ export default function AuthWrapper({ children }: AuthWrapperProps) {
     }
     
     setIsLoading(false);
-  }, [router]);
+  }, [router, pathname]);
 
   if (isLoading) {
     return (

@@ -10,8 +10,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleLogout = () => {
-    sessionStorage.removeItem('authenticated');
-    sessionStorage.removeItem('username');
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('authenticated');
+      sessionStorage.removeItem('username');
+    }
     router.push('/login');
   };
 

@@ -17,9 +17,11 @@ export default function LoginPage() {
 
     // Simple authentication check
     if (username === 'pawel' && password === 'ooo000') {
-      // Store authentication in sessionStorage
-      sessionStorage.setItem('authenticated', 'true');
-      sessionStorage.setItem('username', username);
+      // Store authentication in sessionStorage (only on client side)
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('authenticated', 'true');
+        sessionStorage.setItem('username', username);
+      }
       
       // Redirect to main app
       router.push('/');
