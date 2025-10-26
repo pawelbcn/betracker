@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -37,6 +37,6 @@ model Expense {
   updated_at    DateTime   @updatedAt
   delegation    Delegation @relation(fields: [delegation_id], references: [id], onDelete: Cascade)
 
-  @@index([delegation_id], map: "expenses_delegation_id_fkey")
+  @@index([delegation_id], map: "expenses_delegation_id_idx")
   @@map("expenses")
 }
