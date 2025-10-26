@@ -3,9 +3,9 @@ import OpenAI from 'openai';
 import { getDateContextString } from '@/utils/dateHelper';
 import { prisma } from '@/lib/prisma';
 
-const openai = new OpenAI({
+const openai = process.env.OPENAI_API_KEY ? new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
-});
+}) : null;
 
 function createVerificationMessage(parsedResponse: any): string {
   const delegation = parsedResponse.delegation;
@@ -38,6 +38,12 @@ function createVerificationMessage(parsedResponse: any): string {
 
 export async function POST(request: NextRequest) {
   try {
+    if (!openai) {
+      return NextResponse.json({ 
+        error: 'AI Assistant is not configured. Please set OPENAI_API_KEY environment variable.' 
+      }, { status: 503 });
+    }
+
     const { message, conversationHistory = [] } = await request.json();
 
     if (!message) {
