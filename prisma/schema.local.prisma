@@ -1,0 +1,42 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Delegation {
+  id                  String    @id @default(cuid())
+  title               String
+  destination_country String
+  destination_city    String
+  start_date          DateTime
+  end_date            DateTime
+  purpose             String
+  exchange_rate       Float
+  daily_allowance     Float
+  notes               String?
+  created_at          DateTime  @default(now())
+  updated_at          DateTime  @updatedAt
+  expenses            Expense[]
+
+  @@map("delegations")
+}
+
+model Expense {
+  id            String     @id @default(cuid())
+  delegation_id String
+  date          DateTime
+  category      String
+  amount        Float
+  currency      String
+  description   String
+  created_at    DateTime   @default(now())
+  updated_at    DateTime   @updatedAt
+  delegation    Delegation @relation(fields: [delegation_id], references: [id], onDelete: Cascade)
+
+  @@index([delegation_id], map: "expenses_delegation_id_fkey")
+  @@map("expenses")
+}

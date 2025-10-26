@@ -11,6 +11,8 @@
     "db:seed": "tsx scripts/seed.ts",
     "db:clean-seed": "tsx scripts/cleanAndSeed.ts",
     "db:studio": "npx prisma studio",
+    "db:local": "node scripts/switch-db.js local",
+    "db:production": "node scripts/switch-db.js production",
     "changelog": "./update-changelog.sh",
     "version:patch": "npm version patch && ./update-changelog.sh \"Patch release\" \"Changed\"",
     "version:minor": "npm version minor && ./update-changelog.sh \"Minor release\" \"Changed\"",

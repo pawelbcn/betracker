@@ -1,12 +1,19 @@
 "use client";
-import { FileText, Home, BarChart3, Plane, Menu, X } from "lucide-react";
+import { FileText, Home, BarChart3, Plane, Menu, X, LogOut } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const handleLogout = () => {
+    sessionStorage.removeItem('authenticated');
+    sessionStorage.removeItem('username');
+    router.push('/login');
+  };
 
   const navigation = [
     { name: "Business Travel", href: "/", icon: Plane },
@@ -51,6 +58,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   </Link>
                 );
               })}
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-3 px-3 py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors w-full"
+              >
+                <LogOut className="w-6 h-6" />
+                Logout
+              </button>
             </nav>
           </div>
         </div>
@@ -80,6 +94,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               </Link>
             );
           })}
+          <button
+            onClick={handleLogout}
+            className="flex items-center justify-center p-2 text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors"
+            title="Logout"
+          >
+            <LogOut className="w-6 h-6" />
+          </button>
         </nav>
       </aside>
 

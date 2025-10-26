@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import Layout from "@/components/Layout";
+import AuthWrapper from "@/components/AuthWrapper";
 import { ConversationProvider } from "@/contexts/ConversationContext";
 import "./globals.css";
 
@@ -19,9 +20,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <ConversationProvider>
-          <Layout>{children}</Layout>
-        </ConversationProvider>
+        <AuthWrapper>
+          <ConversationProvider>
+            <Layout>{children}</Layout>
+          </ConversationProvider>
+        </AuthWrapper>
       </body>
     </html>
   );
