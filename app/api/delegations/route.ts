@@ -36,6 +36,9 @@ export async function POST(request: NextRequest) {
     if (!body.start_date || !body.end_date) {
       return NextResponse.json({ error: 'Start and end dates are required' }, { status: 400 })
     }
+    if (!body.start_time || !body.end_time) {
+      return NextResponse.json({ error: 'Start and end times are required' }, { status: 400 })
+    }
     if (!body.purpose || typeof body.purpose !== 'string' || body.purpose.trim().length === 0) {
       return NextResponse.json({ error: 'Purpose is required' }, { status: 400 })
     }
@@ -52,7 +55,9 @@ export async function POST(request: NextRequest) {
         destination_country: body.destination_country,
         destination_city: body.destination_city.trim(),
         start_date: new Date(body.start_date),
+        start_time: body.start_time,
         end_date: new Date(body.end_date),
+        end_time: body.end_time,
         purpose: body.purpose.trim(),
         exchange_rate: parseFloat(body.exchange_rate),
         daily_allowance: parseFloat(body.daily_allowance),

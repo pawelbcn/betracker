@@ -12,7 +12,9 @@ interface DelegationFormProps {
     destination_country: string;
     destination_city: string;
     start_date: string;
+    start_time: string;
     end_date: string;
+    end_time: string;
     purpose: string;
     exchange_rate: number;
     daily_allowance: number;
@@ -23,7 +25,9 @@ interface DelegationFormProps {
     destination_country?: string;
     destination_city?: string;
     start_date?: string;
+    start_time?: string;
     end_date?: string;
+    end_time?: string;
     purpose?: string;
     exchange_rate?: number;
     daily_allowance?: number;
@@ -44,7 +48,9 @@ export default function DelegationForm({ isOpen, onClose, onSuccess, delegation,
     destination_country: delegation?.destination_country || initialData?.destination_country || '',
     destination_city: delegation?.destination_city || initialData?.destination_city || '',
     start_date: delegation?.start_date ? delegation.start_date.split('T')[0] : initialData?.start_date || '',
+    start_time: delegation?.start_time || initialData?.start_time || '09:00',
     end_date: delegation?.end_date ? delegation.end_date.split('T')[0] : initialData?.end_date || '',
+    end_time: delegation?.end_time || initialData?.end_time || '17:00',
     purpose: delegation?.purpose || initialData?.purpose || '',
     exchange_rate: delegation?.exchange_rate || initialData?.exchange_rate || 4.35,
     daily_allowance: delegation?.daily_allowance || initialData?.daily_allowance || 43,
@@ -311,12 +317,40 @@ export default function DelegationForm({ isOpen, onClose, onSuccess, delegation,
 
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Start Time *
+                </label>
+                <input
+                  type="time"
+                  name="start_time"
+                  value={formData.start_time}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-3 py-2 border border-neutral-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
                   End Date *
                 </label>
                 <input
                   type="date"
                   name="end_date"
                   value={formData.end_date}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-3 py-2 border border-neutral-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  End Time *
+                </label>
+                <input
+                  type="time"
+                  name="end_time"
+                  value={formData.end_time}
                   onChange={handleChange}
                   required
                   className="w-full px-3 py-2 border border-neutral-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"

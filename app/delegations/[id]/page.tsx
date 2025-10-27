@@ -18,7 +18,9 @@ interface Delegation {
   destination_country: string;
   destination_city: string;
   start_date: string;
+  start_time: string;
   end_date: string;
+  end_time: string;
   purpose: string;
   exchange_rate: number;
   daily_allowance: number;

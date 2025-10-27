@@ -7,7 +7,9 @@ export interface Delegation {
   destination_country: string;
   destination_city: string;
   start_date: string; // YYYY-MM-DD
+  start_time: string; // HH:MM format
   end_date: string; // YYYY-MM-DD
+  end_time: string; // HH:MM format
   purpose: string;
   exchange_rate: number;
   daily_allowance: number; // Per Polish regulations (EUR)
@@ -132,15 +134,45 @@ export const calculateTotalExpensesByCurrency = (expenses: Expense[]): Record<st
 
 /**
  * Calculate daily allowance (diety) as per section 3.2
- * total_diety = number_of_days * allowance_rate
+ * Handles partial days based on time spent according to Polish law:
+ * - <8h → 1/3 rate
+ * - 8–12h → 1/2 rate  
+ * - >12h → full day
  */
 export const calculateDailyAllowance = (delegation: Delegation): number => {
-  const days = differenceInDays(
-    new Date(delegation.end_date),
-    new Date(delegation.start_date)
-  ) + 1; // Include both start and end date
+  const startDateTime = new Date(`${delegation.start_date}T${delegation.start_time}`);
+  const endDateTime = new Date(`${delegation.end_date}T${delegation.end_time}`);
   
-  return days * delegation.daily_allowance * delegation.exchange_rate;
+  // Calculate total hours
+  const totalHours = (endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60 * 60);
+  
+  // Calculate full days
+  const fullDays = Math.floor(totalHours / 24);
+  
+  // Calculate remaining hours for partial day
+  const remainingHours = totalHours % 24;
+  
+  let totalAllowance = 0;
+  
+  // Full days get full allowance
+  totalAllowance += fullDays * delegation.daily_allowance;
+  
+  // Partial day calculation based on hours
+  if (remainingHours > 0) {
+    let partialDayRate = 0;
+    
+    if (remainingHours < 8) {
+      partialDayRate = 1/3; // <8h → 1/3 rate
+    } else if (remainingHours <= 12) {
+      partialDayRate = 1/2; // 8–12h → 1/2 rate
+    } else {
+      partialDayRate = 1; // >12h → full day
+    }
+    
+    totalAllowance += partialDayRate * delegation.daily_allowance;
+  }
+  
+  return totalAllowance * delegation.exchange_rate;
 };
 
 /**
