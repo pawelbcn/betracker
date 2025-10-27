@@ -20,6 +20,29 @@ export default function LoginPage() {
     }
   }, [searchParams]);
 
+  const migrateData = async () => {
+    try {
+      const response = await fetch('/api/migrate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Migration successful:', data);
+        return true;
+      } else {
+        console.error('Migration failed:', response.status);
+        return false;
+      }
+    } catch (error) {
+      console.error('Migration error:', error);
+      return false;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -27,6 +50,12 @@ export default function LoginPage() {
 
     // Simple authentication check
     if (username === 'pawel' && password === 'ooo000') {
+      // Try to migrate data first
+      if (typeof window !== 'undefined') {
+        console.log('Attempting to migrate existing data...');
+        await migrateData();
+      }
+      
       // Store authentication in sessionStorage (only on client side)
       if (typeof window !== 'undefined') {
         sessionStorage.setItem('authenticated', 'true');
