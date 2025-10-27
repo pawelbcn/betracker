@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Plane, MapPin, Calendar, Plus, Download, MessageCircle } from 'lucide-react';
-import DelegationForm from '@/components/DelegationForm';
 import PersistentAIAssistant from '@/components/PersistentAIAssistant';
 import { exportToPDF, exportToCSV } from '@/logic/export';
 import { calculateTotalExpensesMultiCurrencySync, calculateDailyAllowance } from '@/logic/rules';
@@ -37,7 +37,6 @@ interface Expense {
 export default function Home() {
   const [delegations, setDelegations] = useState<Delegation[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showDelegationForm, setShowDelegationForm] = useState(false);
   const [aiInitialData, setAiInitialData] = useState<any>(null);
   const [aiExpensesData, setAiExpensesData] = useState<any[]>([]);
   const [isClient, setIsClient] = useState(false);
@@ -201,13 +200,13 @@ export default function Home() {
           <h1 className="text-3xl font-bold text-neutral-900">{t('main.title')}</h1>
           <p className="text-neutral-600 mt-1">{t('main.subtitle')}</p>
         </div>
-        <button
-          onClick={() => setShowDelegationForm(true)}
+        <Link
+          href="/add-delegation"
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           <Plus className="w-4 h-4" />
           {t('main.add_travel')}
-        </button>
+        </Link>
       </div>
 
       {/* Export Section */}
@@ -279,13 +278,13 @@ export default function Home() {
           <Plane className="w-16 h-16 text-neutral-400 mx-auto mb-4" />
           <h3 className="text-xl font-semibold text-neutral-900 mb-2">Brak delegacji</h3>
           <p className="text-neutral-600 mb-6">Dodaj pierwszą delegację służbową, aby rozpocząć korzystanie z aplikacji.</p>
-          <button
-            onClick={() => setShowDelegationForm(true)}
+          <Link
+            href="/add-delegation"
             className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors mx-auto"
           >
             <Plus className="w-5 h-5" />
             {t('main.add_travel')}
-          </button>
+          </Link>
         </div>
       ) : (
         <div className="card overflow-hidden">
@@ -420,21 +419,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* Delegation Form Modal */}
-      {showDelegationForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <DelegationForm
-              isOpen={showDelegationForm}
-              onClose={() => setShowDelegationForm(false)}
-              onSuccess={() => {
-                setShowDelegationForm(false);
-                fetchDelegations();
-              }}
-            />
-          </div>
-        </div>
-      )}
 
       {/* AI Assistant */}
       <PersistentAIAssistant

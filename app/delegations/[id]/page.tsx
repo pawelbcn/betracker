@@ -19,9 +19,9 @@ interface Delegation {
   destination_country: string;
   destination_city: string;
   start_date: string;
-  start_time: string;
+  start_time?: string;
   end_date: string;
-  end_time: string;
+  end_time?: string;
   purpose: string;
   exchange_rate: number;
   daily_allowance: number;
@@ -247,7 +247,13 @@ export default function DelegationPage({ params }: { params: { id: string } }) {
                 
                 {/* Delegation Time Breakdown */}
                 {(() => {
-                  const timeBreakdown = calculateDelegationTimeBreakdown(delegation);
+                  // Create a delegation object with default time values if missing
+                  const delegationWithTimes = {
+                    ...delegation,
+                    start_time: delegation.start_time || '09:00',
+                    end_time: delegation.end_time || '17:00'
+                  };
+                  const timeBreakdown = calculateDelegationTimeBreakdown(delegationWithTimes);
                   return (
                     <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                       <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm">
@@ -434,11 +440,19 @@ export default function DelegationPage({ params }: { params: { id: string } }) {
               ))}
             </div>
           </div>
-          <ExportMenu delegation={delegation} expenses={expenses} />
+          <ExportMenu delegation={{
+            ...delegation,
+            start_time: delegation.start_time || '09:00',
+            end_time: delegation.end_time || '17:00'
+          }} expenses={expenses} />
         </div>
         
         <div>
-          <SummaryCard delegation={delegation} expenses={expenses} />
+          <SummaryCard delegation={{
+            ...delegation,
+            start_time: delegation.start_time || '09:00',
+            end_time: delegation.end_time || '17:00'
+          }} expenses={expenses} />
         </div>
       </div>
 
@@ -459,7 +473,11 @@ export default function DelegationPage({ params }: { params: { id: string } }) {
             isOpen={showDelegationForm}
             onClose={() => setShowDelegationForm(false)}
             onSuccess={handleDelegationSuccess}
-            delegation={delegation}
+            delegation={{
+              ...delegation,
+              start_time: delegation.start_time || '09:00',
+              end_time: delegation.end_time || '17:00'
+            }}
           />
 
           {/* Persistent AI Assistant */}

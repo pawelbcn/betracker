@@ -1,7 +1,6 @@
 "use client";
 import { useState } from 'react';
 import Link from 'next/link';
-import { useLanguage } from '@/contexts/LanguageContext';
 import { 
   Calculator, 
   Plane, 
@@ -18,7 +17,6 @@ import {
 } from 'lucide-react';
 
 export default function LandingPage() {
-  const { t } = useLanguage();
   const [activeFeature, setActiveFeature] = useState(0);
 
   const features = [
@@ -72,6 +70,32 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-white">
+      {/* Simple header without sidebar */}
+      <header className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center">
+              <Plane className="w-8 h-8 text-blue-600 mr-2" />
+              <span className="text-xl font-bold text-gray-900">Kalkulator Delegacji</span>
+            </div>
+            <div className="flex items-center space-x-4">
+              <Link
+                href="/login"
+                className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+              >
+                Zaloguj się
+              </Link>
+              <Link
+                href="/register"
+                className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700"
+              >
+                Zarejestruj się
+              </Link>
+            </div>
+          </div>
+        </div>
+      </header>
+      
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-blue-50 to-indigo-100 py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
