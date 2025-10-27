@@ -4,6 +4,7 @@
   "description": "Delegation Expense Tracker - Next.js Application",
   "private": true,
   "scripts": {
+    "postinstall": "prisma generate",
     "build": "next build",
     "dev": "next dev",
     "start": "next start",
