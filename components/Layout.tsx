@@ -85,9 +85,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {/* Desktop Sidebar */}
       <aside className="w-20 bg-white border-r border-neutral-200 shadow-sm p-4 hidden md:block">
         <div className="flex items-center justify-center mb-8">
-          <Link href="/landing" className="flex items-center gap-2">
+          <Link href="/landing" className="flex items-center justify-center">
             <Plane className="w-6 h-6 text-blue-600" />
-            <span className="text-sm font-semibold text-neutral-900 hidden lg:block">Kalkulator Delegacji</span>
           </Link>
         </div>
         
@@ -128,9 +127,8 @@ title={t('nav.logout')}
         {/* Mobile Header - only show on pages with sidebar */}
         {shouldShowSidebar && (
           <div className="md:hidden bg-white border-b border-neutral-200 px-4 py-3 flex items-center justify-between">
-          <Link href="/landing" className="flex items-center gap-2">
+          <Link href="/landing" className="flex items-center">
             <Plane className="w-5 h-5 text-blue-600" />
-            <span className="text-lg font-semibold text-neutral-900">Kalkulator Delegacji</span>
           </Link>
           <button
             onClick={() => setMobileMenuOpen(true)}
