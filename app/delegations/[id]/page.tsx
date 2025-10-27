@@ -292,7 +292,6 @@ export default function DelegationPage({ params }: { params: { id: string } }) {
                     </div>
                   );
                 })()}
-                </div>
               </div>
           
           <div className="card p-4">
