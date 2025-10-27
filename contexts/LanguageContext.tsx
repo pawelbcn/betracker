@@ -215,39 +215,19 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   };
 
   const t = (key: string): string => {
-    // Debug logging
-    if (typeof window !== 'undefined') {
-      console.log(`Translation request: "${key}" for language: ${language}`);
-      console.log(`Available languages:`, Object.keys(translations));
-      console.log(`Current language object:`, translations[language]);
-    }
-    
-    // Always try to get the translation first
-    const keys = key.split('.');
-    let value: any = translations[language];
-    
-    for (const k of keys) {
-      value = value?.[k];
-    }
+    // Get the translation directly from the flat structure
+    const translation = translations[language]?.[key];
     
     // If we found a translation, return it
-    if (value) {
-      console.log(`Found translation: "${value}"`);
-      return value;
+    if (translation) {
+      return translation;
     }
     
     // Fallback to English if translation not found
-    const englishValue = translations.en;
-    let englishResult: any = englishValue;
-    
-    for (const k of keys) {
-      englishResult = englishResult?.[k];
-    }
-    
-    console.log(`No translation found, using English fallback: "${englishResult || key}"`);
+    const englishTranslation = translations.en?.[key];
     
     // Return English fallback or the key itself
-    return englishResult || key;
+    return englishTranslation || key;
   };
 
   return (
