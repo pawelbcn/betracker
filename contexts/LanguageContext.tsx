@@ -216,7 +216,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   const t = (key: string): string => {
     // Get the translation directly from the flat structure
-    const translation = translations[language]?.[key];
+    const translation = (translations[language] as any)?.[key];
     
     // If we found a translation, return it
     if (translation) {
@@ -224,7 +224,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     }
     
     // Fallback to English if translation not found
-    const englishTranslation = translations.en?.[key];
+    const englishTranslation = (translations.en as any)?.[key];
     
     // Return English fallback or the key itself
     return englishTranslation || key;
