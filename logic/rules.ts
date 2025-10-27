@@ -140,15 +140,6 @@ export const calculateTotalExpensesByCurrency = (expenses: Expense[]): Record<st
  * - >12h → full day
  */
 export const calculateDailyAllowance = (delegation: Delegation): number => {
-  // Debug logging to see what we're getting
-  console.log('Delegation data:', {
-    id: delegation.id,
-    start_time: delegation.start_time,
-    end_time: delegation.end_time,
-    start_time_type: typeof delegation.start_time,
-    end_time_type: typeof delegation.end_time
-  });
-  
   // Handle legacy delegations without time fields or with invalid time values
   const hasValidTimeFields = delegation.start_time && 
                             delegation.end_time && 
@@ -159,8 +150,6 @@ export const calculateDailyAllowance = (delegation: Delegation): number => {
                             delegation.start_time.trim() !== '' &&
                             delegation.end_time.trim() !== '';
   
-  console.log('Has valid time fields:', hasValidTimeFields);
-  
   if (!hasValidTimeFields) {
     // Fallback to old calculation for existing delegations
     const days = differenceInDays(
@@ -168,13 +157,11 @@ export const calculateDailyAllowance = (delegation: Delegation): number => {
       new Date(delegation.start_date)
     ) + 1; // Include both start and end date
     
-    const result = days * delegation.daily_allowance * delegation.exchange_rate;
-    console.log('Using fallback calculation:', { days, daily_allowance: delegation.daily_allowance, exchange_rate: delegation.exchange_rate, result });
-    return result;
+    return days * delegation.daily_allowance * delegation.exchange_rate;
   }
   
-  const startDateTime = new Date(`${delegation.start_date}T${delegation.start_time}`);
-  const endDateTime = new Date(`${delegation.end_date}T${delegation.end_time}`);
+  const startDateTime = new Date(`${delegation.start_date.split('T')[0]}T${delegation.start_time}`);
+  const endDateTime = new Date(`${delegation.end_date.split('T')[0]}T${delegation.end_time}`);
   
   // Calculate total hours
   const totalHours = (endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60 * 60);
