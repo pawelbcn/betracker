@@ -119,7 +119,7 @@ ${conversationContext}`;
         const delegation = await prisma.delegation.create({
           data: {
             id: `delegation_${Date.now()}`,
-            user_id: 'temp_user_id', // TODO: Get from authentication
+            // user_id: 'temp_user_id', // TODO: Get from authentication - removed until user_id field exists
             title: parsedResponse.delegation.title,
             destination_country: parsedResponse.delegation.destination_country,
             destination_city: parsedResponse.delegation.destination_city,
@@ -164,7 +164,7 @@ ${conversationContext}`;
           const delegation = await prisma.delegation.create({
             data: {
             id: `delegation_${Date.now()}`,
-            user_id: 'temp_user_id', // TODO: Get from authentication
+            // user_id: 'temp_user_id', // TODO: Get from authentication - removed until user_id field exists
               title: parsedResponse.delegation.title,
               destination_country: parsedResponse.delegation.destination_country,
               destination_city: parsedResponse.delegation.destination_city,

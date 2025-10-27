@@ -51,7 +51,6 @@ export async function POST(request: NextRequest) {
     
     const delegation = await prisma.delegation.create({
       data: {
-        user_id: 'temp_user_id', // TODO: Get from authentication
         title: body.title.trim(),
         destination_country: body.destination_country,
         destination_city: body.destination_city.trim(),
