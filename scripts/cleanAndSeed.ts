@@ -79,7 +79,10 @@ async function main() {
   const createdDelegations = [];
   for (const delegationData of delegations) {
     const delegation = await prisma.delegation.create({
-      data: delegationData
+      data: {
+        ...delegationData,
+        user_id: 'temp_user_id' // TODO: Get from authentication
+      }
     });
     createdDelegations.push(delegation);
     console.log(`✅ Created delegation: ${delegation.title}`);

@@ -7,8 +7,24 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id         String       @id @default(cuid())
+  email      String       @unique
+  username   String       @unique
+  password   String
+  first_name String?
+  last_name  String?
+  company    String?
+  created_at DateTime     @default(now())
+  updated_at DateTime     @updatedAt
+  delegations Delegation[]
+
+  @@map("users")
+}
+
 model Delegation {
   id                  String    @id @default(cuid())
+  user_id             String
   title               String
   destination_country String
   destination_city    String
@@ -22,6 +38,7 @@ model Delegation {
   notes               String?
   created_at          DateTime  @default(now())
   updated_at          DateTime  @updatedAt
+  user                User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
   expenses            Expense[]
 
   @@map("delegations")

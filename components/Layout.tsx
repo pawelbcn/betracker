@@ -79,7 +79,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {/* Desktop Sidebar */}
       <aside className="w-20 bg-white border-r border-neutral-200 shadow-sm p-4 hidden md:block">
         <div className="flex items-center justify-center mb-8">
-          <Plane className="w-6 h-6 text-blue-600" />
+          <Link href="/landing" className="flex items-center gap-2">
+            <Plane className="w-6 h-6 text-blue-600" />
+            <span className="text-sm font-semibold text-neutral-900 hidden lg:block">Kalkulator Delegacji</span>
+          </Link>
         </div>
         
         <nav className="space-y-2">
@@ -116,10 +119,10 @@ title={t('nav.logout')}
       <main className="flex-1 flex flex-col">
         {/* Mobile Header */}
         <div className="md:hidden bg-white border-b border-neutral-200 px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <Link href="/landing" className="flex items-center gap-2">
             <Plane className="w-5 h-5 text-blue-600" />
-            <span className="text-lg font-semibold text-neutral-900">Business Travel Tracker</span>
-          </div>
+            <span className="text-lg font-semibold text-neutral-900">Kalkulator Delegacji</span>
+          </Link>
           <button
             onClick={() => setMobileMenuOpen(true)}
             className="p-2 hover:bg-neutral-100 transition-colors"
