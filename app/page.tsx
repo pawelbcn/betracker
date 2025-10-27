@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plane, MapPin, Calendar, Plus, Download, MessageCircle } from 'lucide-react';
+import { Plane, MapPin, Calendar, Plus, Download } from 'lucide-react';
 import DelegationForm from '@/components/DelegationForm';
 import PersistentAIAssistant from '@/components/PersistentAIAssistant';
 import { exportToPDF, exportToCSV } from '@/logic/export';
@@ -9,12 +9,10 @@ import { calculateTotalExpensesMultiCurrencySync, calculateDailyAllowanceAsync }
 import { useLanguage } from '@/contexts/LanguageContext';
 
 // Component for individual delegation row with async calculations
-function DelegationRow({ delegation, isSelected, onSelect, onExportPDF, onExportCSV }: {
+function DelegationRow({ delegation, isSelected, onSelect }: {
   delegation: any;
   isSelected: boolean;
   onSelect: (id: string) => void;
-  onExportPDF: (delegation: any) => void;
-  onExportCSV: (delegation: any) => void;
 }) {
   const [totalAllowance, setTotalAllowance] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -38,14 +36,27 @@ function DelegationRow({ delegation, isSelected, onSelect, onExportPDF, onExport
   const totalExpenses = calculateTotalExpensesMultiCurrencySync(delegation.expenses);
   const total = totalExpenses + totalAllowance;
 
+  const handleRowClick = (e: React.MouseEvent) => {
+    // Don't navigate if clicking on checkbox
+    if ((e.target as HTMLInputElement).type === 'checkbox') {
+      return;
+    }
+    // Navigate to delegation details
+    window.location.href = `/delegations/${delegation.id}`;
+  };
+
   return (
-    <tr className="hover:bg-neutral-50">
+    <tr 
+      className="hover:bg-neutral-50 cursor-pointer transition-colors"
+      onClick={handleRowClick}
+    >
       <td className="px-6 py-4">
         <input
           type="checkbox"
           checked={isSelected}
           onChange={() => onSelect(delegation.id)}
           className="rounded border-neutral-300 text-blue-600 focus:ring-blue-500"
+          onClick={(e) => e.stopPropagation()} // Prevent row click when clicking checkbox
         />
       </td>
       <td className="px-6 py-4">
@@ -89,31 +100,6 @@ function DelegationRow({ delegation, isSelected, onSelect, onExportPDF, onExport
       <td className="px-6 py-4 text-right">
         <div className="text-sm font-semibold text-neutral-900">
           {loading ? '...' : `${total.toFixed(2)} PLN`}
-        </div>
-      </td>
-      <td className="px-6 py-4 text-center">
-        <div className="flex items-center justify-center gap-2">
-          <button
-            onClick={() => onExportPDF(delegation)}
-            className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
-            title="Eksportuj PDF"
-          >
-            <Download className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => onExportCSV(delegation)}
-            className="p-1 text-green-600 hover:bg-green-50 rounded transition-colors"
-            title="Eksportuj CSV"
-          >
-            <Download className="w-4 h-4" />
-          </button>
-          <a
-            href={`/delegations/${delegation.id}`}
-            className="p-1 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-            title="Zobacz szczegóły"
-          >
-            <MessageCircle className="w-4 h-4" />
-          </a>
         </div>
       </td>
     </tr>
@@ -434,9 +420,6 @@ export default function Home() {
                   <th className="px-6 py-3 text-right text-xs font-medium text-neutral-500 uppercase tracking-wider">
                     {t('table.total')}
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                    {t('table.actions')}
-                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-neutral-200">
@@ -446,8 +429,6 @@ export default function Home() {
                     delegation={delegation}
                     isSelected={selectedDelegations.has(delegation.id)}
                     onSelect={handleSelectDelegation}
-                    onExportPDF={handleExportIndividualPDF}
-                    onExportCSV={handleExportIndividualCSV}
                   />
                 ))}
               </tbody>
