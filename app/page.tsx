@@ -123,7 +123,7 @@ export default function Home() {
 
   // Bulk export handlers
   const handleExportSelectedPDFs = async () => {
-    for (const delegationId of selectedDelegations) {
+    for (const delegationId of Array.from(selectedDelegations)) {
       const delegation = delegations.find(d => d.id === delegationId);
       if (delegation) {
         try {
@@ -138,7 +138,7 @@ export default function Home() {
   };
 
   const handleExportSelectedCSVs = async () => {
-    for (const delegationId of selectedDelegations) {
+    for (const delegationId of Array.from(selectedDelegations)) {
       const delegation = delegations.find(d => d.id === delegationId);
       if (delegation) {
         try {
