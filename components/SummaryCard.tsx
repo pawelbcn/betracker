@@ -18,16 +18,26 @@ export function SummaryCard({ delegation, expenses }: SummaryCardProps) {
   
   const [totalAllowance, setTotalAllowance] = useState(0);
   const [allowanceLoading, setAllowanceLoading] = useState(true);
+  const [allowanceRate, setAllowanceRate] = useState<number | null>(null);
+  const [allowanceRateDate, setAllowanceRateDate] = useState<string | null>(null);
   const timeBreakdown = calculateDelegationTimeBreakdown(delegation);
   
   useEffect(() => {
     const calculateAllowance = async () => {
       try {
+        // Fetch the NBP rate for EUR on delegation start date
+        const eurRate = await getExchangeRateForDate('EUR', delegation.start_date);
+        setAllowanceRate(eurRate);
+        setAllowanceRateDate(delegation.start_date);
+        
         const allowance = await calculateDailyAllowanceAsync(delegation);
         setTotalAllowance(allowance);
       } catch (error) {
         console.error('Error calculating allowance:', error);
         setTotalAllowance(0);
+        // Set fallback rate info
+        setAllowanceRate(delegation.exchange_rate);
+        setAllowanceRateDate(delegation.start_date);
       } finally {
         setAllowanceLoading(false);
       }
@@ -270,11 +280,32 @@ export function SummaryCard({ delegation, expenses }: SummaryCardProps) {
                               {timeBreakdown.partialDayRate === 1/3 ? '1/3' : timeBreakdown.partialDayRate === 1/2 ? '1/2' : '1'} × {delegation.daily_allowance} EUR
                             </span>
                           )}
-                          <span> × NBP rate</span>
+                          {allowanceRate && (
+                            <>
+                              <span> × {allowanceRate.toFixed(4)} PLN</span>
+                              <div className="text-xs text-neutral-400">
+                                Rate: 1 EUR = {allowanceRate.toFixed(4)} PLN
+                              </div>
+                              <div className="text-xs text-neutral-400">
+                                Date: {allowanceRateDate ? new Date(allowanceRateDate).toLocaleDateString() : 'N/A'}
+                              </div>
+                            </>
+                          )}
                         </>
                       ) : (
                         <span>
-                          {timeBreakdown.totalDays} × {delegation.daily_allowance} EUR × NBP rate
+                          {timeBreakdown.totalDays} × {delegation.daily_allowance} EUR
+                          {allowanceRate && (
+                            <>
+                              <span> × {allowanceRate.toFixed(4)} PLN</span>
+                              <div className="text-xs text-neutral-400">
+                                Rate: 1 EUR = {allowanceRate.toFixed(4)} PLN
+                              </div>
+                              <div className="text-xs text-neutral-400">
+                                Date: {allowanceRateDate ? new Date(allowanceRateDate).toLocaleDateString() : 'N/A'}
+                              </div>
+                            </>
+                          )}
                         </span>
                       )}
                     </div>
@@ -334,8 +365,11 @@ export function SummaryCard({ delegation, expenses }: SummaryCardProps) {
       {/* Exchange Rate Info */}
       <div className="pt-4 border-t border-neutral-200">
         <div className="text-sm text-neutral-500 space-y-1">
-          <p>Exchange rate: 1 EUR = {delegation.exchange_rate} PLN</p>
-          <p>Meals allowance rate: {delegation.daily_allowance} EUR</p>
+          <p>All exchange rates fetched from NBP API</p>
+          <p>Meals allowance rate: {delegation.daily_allowance} EUR per day</p>
+          {allowanceRate && (
+            <p>EUR rate used: 1 EUR = {allowanceRate.toFixed(4)} PLN (from {allowanceRateDate ? new Date(allowanceRateDate).toLocaleDateString() : 'N/A'})</p>
+          )}
         </div>
       </div>
     </div>
