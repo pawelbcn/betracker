@@ -241,3 +241,72 @@ export const isExpenseDeductible = (category: string): boolean => {
 export const getExpenseCategoryInfo = (category: string) => {
   return EXPENSE_CATEGORIES[category as keyof typeof EXPENSE_CATEGORIES];
 };
+
+/**
+ * Calculate delegation time breakdown for display
+ * Returns detailed time information including total hours, full days, and partial day rates
+ */
+export const calculateDelegationTimeBreakdown = (delegation: Delegation) => {
+  // Handle legacy delegations without time fields or with invalid time values
+  const hasValidTimeFields = delegation.start_time && 
+                            delegation.end_time && 
+                            delegation.start_time !== 'null' && 
+                            delegation.end_time !== 'null' &&
+                            delegation.start_time !== 'undefined' && 
+                            delegation.end_time !== 'undefined' &&
+                            delegation.start_time.trim() !== '' &&
+                            delegation.end_time.trim() !== '';
+  
+  if (!hasValidTimeFields) {
+    // Fallback for legacy delegations - calculate days only
+    const days = differenceInDays(
+      new Date(delegation.end_date),
+      new Date(delegation.start_date)
+    ) + 1; // Include both start and end date
+    
+    return {
+      totalHours: days * 24,
+      fullDays: days,
+      partialDayHours: 0,
+      partialDayRate: 0,
+      totalDays: days,
+      hasTimeFields: false
+    };
+  }
+  
+  const startDateTime = new Date(`${delegation.start_date.split('T')[0]}T${delegation.start_time}`);
+  const endDateTime = new Date(`${delegation.end_date.split('T')[0]}T${delegation.end_time}`);
+  
+  // Calculate total hours
+  const totalHours = (endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60 * 60);
+  
+  // Calculate full days
+  const fullDays = Math.floor(totalHours / 24);
+  
+  // Calculate remaining hours for partial day
+  const partialDayHours = totalHours % 24;
+  
+  // Determine partial day rate based on Polish law
+  let partialDayRate = 0;
+  if (partialDayHours > 0) {
+    if (partialDayHours < 8) {
+      partialDayRate = 1/3; // <8h → 1/3 rate
+    } else if (partialDayHours <= 12) {
+      partialDayRate = 1/2; // 8–12h → 1/2 rate
+    } else {
+      partialDayRate = 1; // >12h → full day
+    }
+  }
+  
+  // Calculate total effective days (full days + partial day rate)
+  const totalDays = fullDays + partialDayRate;
+  
+  return {
+    totalHours,
+    fullDays,
+    partialDayHours,
+    partialDayRate,
+    totalDays,
+    hasTimeFields: true
+  };
+};
