@@ -255,6 +255,7 @@ export default function DelegationForm({ isOpen, onClose, onSuccess, delegation,
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* First line: Business Travel Title and Purpose */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-2">
@@ -268,6 +269,39 @@ export default function DelegationForm({ isOpen, onClose, onSuccess, delegation,
                   required
                   className="w-full px-3 py-2 border border-neutral-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="e.g., Berlin Tech Conference"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Purpose *
+                </label>
+                <input
+                  type="text"
+                  name="purpose"
+                  value={formData.purpose}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-3 py-2 border border-neutral-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="e.g., Client project kickoff meeting"
+                />
+              </div>
+            </div>
+
+            {/* Second line: Destination City and Country */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Destination City *
+                </label>
+                <input
+                  type="text"
+                  name="destination_city"
+                  value={formData.destination_city}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-3 py-2 border border-neutral-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="e.g., Berlin"
                 />
               </div>
 
@@ -293,22 +327,10 @@ export default function DelegationForm({ isOpen, onClose, onSuccess, delegation,
                   <option value="Slovakia">Slovakia</option>
                 </select>
               </div>
+            </div>
 
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-2">
-                  Destination City *
-                </label>
-                <input
-                  type="text"
-                  name="destination_city"
-                  value={formData.destination_city}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-3 py-2 border border-neutral-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="e.g., Berlin"
-                />
-              </div>
-
+            {/* Third line: Start Date and Start Time */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-2">
                   Start Date *
@@ -336,7 +358,10 @@ export default function DelegationForm({ isOpen, onClose, onSuccess, delegation,
                   className="w-full px-3 py-2 border border-neutral-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
+            </div>
 
+            {/* Fourth line: End Date and End Time */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-2">
                   End Date *
@@ -364,6 +389,25 @@ export default function DelegationForm({ isOpen, onClose, onSuccess, delegation,
                   className="w-full px-3 py-2 border border-neutral-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
+            </div>
+
+            {/* Fifth line: Daily Allowance and Exchange Rate */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Daily Allowance (EUR) *
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  name="daily_allowance"
+                  value={formData.daily_allowance}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-3 py-2 border border-neutral-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="43"
+                />
+              </div>
 
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-2">
@@ -380,38 +424,8 @@ export default function DelegationForm({ isOpen, onClose, onSuccess, delegation,
                   placeholder="4.35"
                 />
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-2">
-                  Daily Allowance (EUR) *
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  name="daily_allowance"
-                  value={formData.daily_allowance}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-3 py-2 border border-neutral-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="43"
-                />
-              </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-2">
-                Purpose *
-              </label>
-              <input
-                type="text"
-                name="purpose"
-                value={formData.purpose}
-                onChange={handleChange}
-                required
-                className="w-full px-3 py-2 border border-neutral-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="e.g., Client project kickoff meeting"
-              />
-            </div>
 
             <div>
               <label className="block text-sm font-medium text-neutral-700 mb-2">
