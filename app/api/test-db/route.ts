@@ -13,21 +13,15 @@ export async function GET(request: NextRequest) {
       select: {
         id: true,
         title: true,
-        user_id: true,
         created_at: true
       }
     });
 
     console.log(`📊 Found ${delegations.length} delegations`);
 
-    // Try to check if User model exists
-    let userTest;
-    try {
-      userTest = await prisma.user.findMany({ take: 1 });
-      console.log('✅ User model is available');
-    } catch (error) {
-      console.log('❌ User model not available:', error instanceof Error ? error.message : 'Unknown error');
-    }
+    // Skip user model test since it doesn't exist yet
+    console.log('ℹ️ User model test skipped - not available in current schema');
+    const userTest = null;
 
     return NextResponse.json({
       success: true,

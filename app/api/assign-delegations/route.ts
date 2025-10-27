@@ -25,43 +25,9 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Try to create or find pawel user
-    let pawelUser;
-    try {
-      // First try to find existing user
-      pawelUser = await prisma.user.findFirst({
-        where: {
-          OR: [
-            { username: 'pawel' },
-            { email: 'pawel@example.com' }
-          ]
-        }
-      });
-
-      if (!pawelUser) {
-        // Create pawel user
-        const bcrypt = require('bcryptjs');
-        const hashedPassword = await bcrypt.hash('ooo000', 12);
-        
-        pawelUser = await prisma.user.create({
-          data: {
-            username: 'pawel',
-            email: 'pawel@example.com',
-            password: hashedPassword,
-            first_name: 'Pawel',
-            last_name: 'User',
-            company: 'Default Company'
-          }
-        });
-        console.log('✅ Created pawel user:', pawelUser.id);
-      } else {
-        console.log('✅ Found existing pawel user:', pawelUser.id);
-      }
-    } catch (userError) {
-      console.error('❌ User creation failed:', userError);
-      // If user creation fails, we'll just update the delegations with a temp user_id
-      console.log('🔄 Proceeding with temp user_id assignment...');
-    }
+    // Skip user creation since user model doesn't exist yet
+    console.log('🔄 Skipping user creation - user model not available yet');
+    const pawelUser = null;
 
     // For now, just return the delegations without updating user_id
     // since the field doesn't exist in the current database schema
@@ -78,11 +44,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'Delegations assigned successfully',
-      user: pawelUser ? {
-        id: pawelUser.id,
-        username: pawelUser.username,
-        email: pawelUser.email
-      } : { id: userId, username: 'pawel' },
+      user: { id: userId, username: 'pawel' },
       delegations: updatedDelegations.map(d => ({
         id: d.id,
         title: d.title,

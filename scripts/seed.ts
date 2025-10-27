@@ -12,7 +12,7 @@ async function main() {
   // Create delegations
   const delegation1 = await prisma.delegation.create({
     data: {
-      user_id: 'temp_user_id', // TODO: Get from authentication
+      // user_id: 'temp_user_id', // TODO: Get from authentication - removed until user_id field exists
       title: 'Pécs Business Meeting',
       destination_country: 'Hungary',
       destination_city: 'Pécs',
@@ -27,7 +27,7 @@ async function main() {
 
   const delegation2 = await prisma.delegation.create({
     data: {
-      user_id: 'temp_user_id', // TODO: Get from authentication
+      // user_id: 'temp_user_id', // TODO: Get from authentication - removed until user_id field exists
       title: 'Berlin Tech Conference',
       destination_country: 'Germany',
       destination_city: 'Berlin',

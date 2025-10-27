@@ -81,7 +81,7 @@ async function main() {
     const delegation = await prisma.delegation.create({
       data: {
         ...delegationData,
-        user_id: 'temp_user_id' // TODO: Get from authentication
+        // user_id: 'temp_user_id' // TODO: Get from authentication - removed until user_id field exists
       }
     });
     createdDelegations.push(delegation);
