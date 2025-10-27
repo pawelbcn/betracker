@@ -15,12 +15,13 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 // Translation keys
 const translations = {
   en: {
-    // Navigation
-    'nav.business_travel': 'Business Travel',
-    'nav.statistics': 'Statistics',
-    'nav.settings': 'Settings',
-    'nav.logout': 'Logout',
-    'nav.language': 'Language',
+          // Navigation
+          'nav.business_travel': 'Business Travel',
+          'nav.statistics': 'Statistics',
+          'nav.exchange_rates': 'Exchange Rates',
+          'nav.settings': 'Settings',
+          'nav.logout': 'Logout',
+          'nav.language': 'Language',
     
     // Main page
     'main.title': 'Business Travel',
@@ -154,13 +155,14 @@ const translations = {
     'common.save': 'Save',
     'common.cancel': 'Cancel',
   },
-  pl: {
-    // Navigation
-    'nav.business_travel': 'Podróże Służbowe',
-    'nav.statistics': 'Statystyki',
-    'nav.settings': 'Ustawienia',
-    'nav.logout': 'Wyloguj',
-    'nav.language': 'Język',
+    pl: {
+      // Navigation
+      'nav.business_travel': 'Podróże Służbowe',
+      'nav.statistics': 'Statystyki',
+      'nav.exchange_rates': 'Kursy Walut',
+      'nav.settings': 'Ustawienia',
+      'nav.logout': 'Wyloguj',
+      'nav.language': 'Język',
     
     // Main page
     'main.title': 'Podróże Służbowe',
@@ -294,13 +296,14 @@ const translations = {
     'common.save': 'Zapisz',
     'common.cancel': 'Anuluj',
   },
-  de: {
-    // Navigation
-    'nav.business_travel': 'Geschäftsreisen',
-    'nav.statistics': 'Statistiken',
-    'nav.settings': 'Einstellungen',
-    'nav.logout': 'Abmelden',
-    'nav.language': 'Sprache',
+    de: {
+      // Navigation
+      'nav.business_travel': 'Geschäftsreisen',
+      'nav.statistics': 'Statistiken',
+      'nav.exchange_rates': 'Wechselkurse',
+      'nav.settings': 'Einstellungen',
+      'nav.logout': 'Abmelden',
+      'nav.language': 'Sprache',
     
     // Main page
     'main.title': 'Geschäftsreisen',
@@ -434,13 +437,14 @@ const translations = {
     'common.save': 'Speichern',
     'common.cancel': 'Abbrechen',
   },
-  fr: {
-    // Navigation
-    'nav.business_travel': 'Voyages d\'Affaires',
-    'nav.statistics': 'Statistiques',
-    'nav.settings': 'Paramètres',
-    'nav.logout': 'Déconnexion',
-    'nav.language': 'Langue',
+    fr: {
+      // Navigation
+      'nav.business_travel': 'Voyages d\'Affaires',
+      'nav.statistics': 'Statistiques',
+      'nav.exchange_rates': 'Taux de Change',
+      'nav.settings': 'Paramètres',
+      'nav.logout': 'Déconnexion',
+      'nav.language': 'Langue',
     
     // Main page
     'main.title': 'Voyages d\'Affaires',

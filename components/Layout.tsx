@@ -1,5 +1,5 @@
 "use client";
-import { FileText, Home, BarChart3, Plane, Menu, X, LogOut, Settings, Globe } from "lucide-react";
+import { FileText, Home, BarChart3, Plane, Menu, X, LogOut, Settings, Globe, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -19,11 +19,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     router.push('/login');
   };
 
-  const navigation = [
-    { name: t('nav.business_travel'), href: "/", icon: Plane },
-    { name: t('nav.statistics'), href: "/stats", icon: BarChart3 },
-    { name: t('nav.settings'), href: "/settings", icon: Settings },
-  ];
+        const navigation = [
+          { name: t('nav.business_travel'), href: "/", icon: Plane },
+          { name: t('nav.statistics'), href: "/stats", icon: BarChart3 },
+          { name: t('nav.exchange_rates'), href: "/exchange-rates", icon: TrendingUp },
+          { name: t('nav.settings'), href: "/settings", icon: Settings },
+        ];
 
   return (
     <div className="min-h-screen flex bg-neutral-50">
