@@ -215,15 +215,17 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   };
 
   const t = (key: string): string => {
-    if (!isClient) {
-      return key; // Return key during SSR to prevent hydration mismatch
-    }
-    
+    // Always try to get translation, fallback to key if not found
     const keys = key.split('.');
     let value: any = translations[language];
     
     for (const k of keys) {
       value = value?.[k];
+    }
+    
+    // Debug logging
+    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+      console.log(`Translation for "${key}" in ${language}:`, value || 'NOT FOUND');
     }
     
     return value || key;

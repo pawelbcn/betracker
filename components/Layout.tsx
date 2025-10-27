@@ -20,9 +20,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   };
 
   const navigation = [
-    { name: isClient ? t('nav.business_travel') : 'Business Travel', href: "/", icon: Plane },
-    { name: isClient ? t('nav.statistics') : 'Statistics', href: "/stats", icon: BarChart3 },
-    { name: isClient ? t('nav.settings') : 'Settings', href: "/settings", icon: Settings },
+    { name: t('nav.business_travel'), href: "/", icon: Plane },
+    { name: t('nav.statistics'), href: "/stats", icon: BarChart3 },
+    { name: t('nav.settings'), href: "/settings", icon: Settings },
   ];
 
   return (
@@ -74,7 +74,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 className="flex items-center gap-3 px-3 py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors w-full"
               >
                 <LogOut className="w-6 h-6" />
-                {isClient ? t('nav.logout') : 'Logout'}
+{t('nav.logout')}
               </button>
             </nav>
           </div>
@@ -119,7 +119,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <button
             onClick={handleLogout}
             className="flex items-center justify-center p-2 text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors"
-            title={isClient ? t('nav.logout') : 'Logout'}
+title={t('nav.logout')}
           >
             <LogOut className="w-6 h-6" />
           </button>

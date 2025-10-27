@@ -194,7 +194,7 @@ export default function Home() {
     router.push(`/delegations/${delegationId}`);
   };
 
-  if (loading || !isLanguageClient) {
+  if (loading) {
     return (
       <div className="space-y-8">
         <div className="space-y-2">
