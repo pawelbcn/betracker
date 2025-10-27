@@ -43,7 +43,7 @@ export default function Home() {
   const [isClient, setIsClient] = useState(false);
   const [selectedDelegations, setSelectedDelegations] = useState<Set<string>>(new Set());
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, isClient: isLanguageClient } = useLanguage();
 
   const fetchDelegations = async () => {
     try {
@@ -194,12 +194,12 @@ export default function Home() {
     router.push(`/delegations/${delegationId}`);
   };
 
-  if (loading) {
+  if (loading || !isLanguageClient) {
     return (
       <div className="space-y-8">
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-neutral-900">{t('main.title')}</h1>
-          <p className="text-neutral-600">{t('main.subtitle')}</p>
+          <h1 className="text-3xl font-bold text-neutral-900">Business Travel</h1>
+          <p className="text-neutral-600">Track and manage your business travel expenses</p>
         </div>
         <div className="flex items-center justify-center py-12">
           <div className="text-neutral-500">Loading business travel...</div>

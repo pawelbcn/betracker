@@ -7,6 +7,7 @@ interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
   t: (key: string) => string;
+  isClient: boolean;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -193,9 +194,11 @@ const translations = {
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>('en');
+  const [isClient, setIsClient] = useState(false);
 
   // Load language from localStorage on mount
   useEffect(() => {
+    setIsClient(true);
     if (typeof window !== 'undefined') {
       const savedLanguage = localStorage.getItem('language') as Language;
       if (savedLanguage && ['en', 'pl', 'de', 'fr'].includes(savedLanguage)) {
@@ -212,6 +215,10 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   };
 
   const t = (key: string): string => {
+    if (!isClient) {
+      return key; // Return key during SSR to prevent hydration mismatch
+    }
+    
     const keys = key.split('.');
     let value: any = translations[language];
     
@@ -223,7 +230,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider value={{ language, setLanguage, t, isClient }}>
       {children}
     </LanguageContext.Provider>
   );

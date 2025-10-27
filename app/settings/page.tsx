@@ -4,9 +4,22 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Check, Save } from 'lucide-react';
 
 export default function SettingsPage() {
-  const { language, setLanguage, t } = useLanguage();
+  const { language, setLanguage, t, isClient } = useLanguage();
   const [selectedLanguage, setSelectedLanguage] = useState<typeof language>(language);
   const [showSaved, setShowSaved] = useState(false);
+
+  if (!isClient) {
+    return (
+      <div className="max-w-2xl mx-auto">
+        <div className="card p-6">
+          <h1 className="text-2xl font-bold text-neutral-900 mb-6">
+            User Settings
+          </h1>
+          <div className="text-neutral-500">Loading settings...</div>
+        </div>
+      </div>
+    );
+  }
 
   const languages = [
     { code: 'en' as const, name: t('lang.english'), flag: '🇺🇸' },
