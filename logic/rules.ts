@@ -138,6 +138,7 @@ export const calculateTotalExpensesByCurrency = (expenses: Expense[]): Record<st
  * - <8h → 1/3 rate
  * - 8–12h → 1/2 rate  
  * - >12h → full day
+ * Fixed: Proper date string concatenation for time calculations
  */
 export const calculateDailyAllowance = (delegation: Delegation): number => {
   // Handle legacy delegations without time fields or with invalid time values
