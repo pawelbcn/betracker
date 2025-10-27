@@ -1,5 +1,5 @@
 "use client";
-import { FileText, Home, BarChart3, Plane, Menu, X, LogOut, Settings, Globe, TrendingUp } from "lucide-react";
+import { FileText, Home, BarChart3, Plane, Menu, X, LogOut, Settings, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -9,7 +9,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { t, language, isClient } = useLanguage();
+  const { t } = useLanguage();
 
   const handleLogout = () => {
     if (typeof window !== 'undefined') {
@@ -38,18 +38,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 <Plane className="w-5 h-5 text-blue-600" />
                 <span className="text-lg font-semibold text-neutral-900">Business Travel Tracker</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1 px-2 py-1 bg-neutral-100 rounded text-sm">
-                  <Globe className="w-4 h-4" />
-                  <span className="uppercase font-medium">{language}</span>
-                </div>
-                <button
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="p-2 hover:bg-neutral-100 transition-colors"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
+              <button
+                onClick={() => setMobileMenuOpen(false)}
+                className="p-2 hover:bg-neutral-100 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
             <nav className="p-4 space-y-2">
               {navigation.map((item) => {
@@ -107,15 +101,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             );
           })}
           
-          {/* Language Switcher */}
-          <div className="pt-4 border-t border-neutral-200">
-            <div className="flex items-center justify-center p-2 text-neutral-600" title={t('nav.language')}>
-              <Globe className="w-6 h-6" />
-            </div>
-            <div className="text-xs text-center text-neutral-500 uppercase font-medium">
-              {language}
-            </div>
-          </div>
           
           <button
             onClick={handleLogout}
