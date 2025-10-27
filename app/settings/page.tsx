@@ -1,6 +1,7 @@
 "use client";
 import { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import CacheStats from '@/components/CacheStats';
 import { Check, Save } from 'lucide-react';
 
 export default function SettingsPage() {
@@ -79,6 +80,15 @@ export default function SettingsPage() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Cache Statistics */}
+      <div className="card p-6">
+        <h2 className="text-xl font-semibold text-neutral-900 mb-4">Exchange Rate Cache</h2>
+        <p className="text-neutral-600 mb-4">
+          Monitor and manage the exchange rate cache. Past rates are cached permanently since they never change.
+        </p>
+        <CacheStats />
       </div>
     </div>
   );

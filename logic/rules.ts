@@ -1,5 +1,5 @@
 import { differenceInDays } from 'date-fns';
-import { convertToPLN, getExchangeRatesForDate, getExchangeRateForDate } from './exchangeRates';
+import { convertToPLN, getExchangeRatesForDate, getExchangeRateForDate, getFallbackWarning } from './exchangeRates';
 
 // Data models as per knowledgebase v0.2 section 2
 export interface Delegation {
@@ -74,17 +74,10 @@ export const calculateTotalExpensesMultiCurrency = async (expenses: Expense[]): 
         return expense.amount;
       }
       
-      try {
-        // Use expense date for exchange rate calculation
-        const expenseDate = new Date(expense.date).toISOString().split('T')[0];
-        const rate = await getExchangeRateForDate(expense.currency, expenseDate);
-        return expense.amount * rate;
-      } catch (error) {
-        console.error(`Error converting ${expense.currency} for expense ${expense.id}:`, error);
-        // Fallback to default rate
-        const fallbackRate = getExchangeRateForCurrency(expense.currency);
-        return expense.amount * fallbackRate;
-      }
+      // Use expense date for exchange rate calculation
+      const expenseDate = new Date(expense.date).toISOString().split('T')[0];
+      const rate = await getExchangeRateForDate(expense.currency, expenseDate);
+      return expense.amount * rate;
     })
   );
   
@@ -183,17 +176,10 @@ export const calculateTotalExpensesByCurrencyPLN = async (expenses: Expense[]): 
         return { currency: expense.currency, amount: expense.amount };
       }
       
-      try {
-        // Use expense date for exchange rate calculation
-        const expenseDate = new Date(expense.date).toISOString().split('T')[0];
-        const rate = await getExchangeRateForDate(expense.currency, expenseDate);
-        return { currency: expense.currency, amount: expense.amount * rate };
-      } catch (error) {
-        console.error(`Error converting ${expense.currency} for expense ${expense.id}:`, error);
-        // Fallback to default rate
-        const fallbackRate = getExchangeRateForCurrency(expense.currency);
-        return { currency: expense.currency, amount: expense.amount * fallbackRate };
-      }
+      // Use expense date for exchange rate calculation
+      const expenseDate = new Date(expense.date).toISOString().split('T')[0];
+      const rate = await getExchangeRateForDate(expense.currency, expenseDate);
+      return { currency: expense.currency, amount: expense.amount * rate };
     })
   );
   
@@ -274,9 +260,17 @@ export const calculateDailyAllowanceAsync = async (delegation: Delegation): Prom
   // Convert to PLN using NBP rate
   try {
     const eurRate = await getExchangeRateForDate('EUR', delegation.start_date);
+    
+    // Check if we're using fallback rates and warn user
+    const fallbackInfo = getFallbackWarning('EUR', delegation.start_date);
+    if (fallbackInfo.isUsingFallback) {
+      console.warn('⚠️ Using fallback rate for daily allowance calculation:', fallbackInfo.warning);
+    }
+    
     return totalAllowance * eurRate;
   } catch (error) {
-    console.warn('Failed to fetch NBP rate, using fallback:', error);
+    console.error('❌ Failed to fetch NBP rate for daily allowance, using hardcoded fallback:', error);
+    console.warn('⚠️ WARNING: Using hardcoded fallback rate - calculations may not be accurate for tax purposes');
     return totalAllowance * delegation.exchange_rate;
   }
 };
