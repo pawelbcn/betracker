@@ -8,6 +8,7 @@ interface LanguageContextType {
   setLanguage: (lang: Language) => void;
   t: (key: string) => string;
   isClient: boolean;
+  isHydrated: boolean;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -195,6 +196,7 @@ const translations = {
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>('en');
   const [isClient, setIsClient] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   // Load language from localStorage on mount
   useEffect(() => {
@@ -204,6 +206,8 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       if (savedLanguage && ['en', 'pl', 'de', 'fr'].includes(savedLanguage)) {
         setLanguageState(savedLanguage);
       }
+      // Mark as hydrated after a brief delay to ensure state is set
+      setTimeout(() => setIsHydrated(true), 100);
     }
   }, []);
 
@@ -215,7 +219,49 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   };
 
   const t = (key: string): string => {
-    // Always try to get translation, fallback to key if not found
+    // During SSR or before hydration, return a fallback or the key
+    if (!isClient || !isHydrated) {
+      // Return a sensible fallback for common keys during SSR
+      const fallbacks: Record<string, string> = {
+        'main.title': 'Business Travel',
+        'main.subtitle': 'Track and manage your business travel expenses',
+        'main.add_travel': 'Add Business Travel',
+        'main.export_all': 'Export Business Travel',
+        'main.export_all_desc': 'Export all business travel at once for accounting purposes',
+        'main.export_all_pdfs': 'Export All PDFs',
+        'main.export_all_csvs': 'Export All CSVs',
+        'main.export_selected': 'Export Selected',
+        'main.export_selected_pdfs': 'Export Selected PDFs',
+        'main.export_selected_csvs': 'Export Selected CSVs',
+        'main.clear_selection': 'Clear Selection',
+        'table.business_travel': 'Business Travel',
+        'table.destination': 'Destination',
+        'table.dates': 'Dates',
+        'table.purpose': 'Purpose',
+        'table.meals_allowance': 'Meals Allowance',
+        'table.expenses': 'Expenses',
+        'table.total': 'Total',
+        'table.actions': 'Actions',
+        'nav.business_travel': 'Business Travel',
+        'nav.statistics': 'Statistics',
+        'nav.settings': 'Settings',
+        'nav.logout': 'Logout',
+        'nav.language': 'Language',
+        'settings.title': 'User Settings',
+        'settings.subtitle': 'Manage your application preferences',
+        'settings.language': 'Language Preference',
+        'settings.language_desc': 'Select your preferred language:',
+        'settings.save': 'Save Changes',
+        'settings.saved': 'Changes saved successfully!',
+        'lang.english': 'English',
+        'lang.polish': 'Polski',
+        'lang.german': 'Deutsch',
+        'lang.french': 'Français',
+      };
+      return fallbacks[key] || key;
+    }
+    
+    // After hydration, use the actual translations
     const keys = key.split('.');
     let value: any = translations[language];
     
@@ -223,16 +269,11 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       value = value?.[k];
     }
     
-    // Debug logging
-    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-      console.log(`Translation for "${key}" in ${language}:`, value || 'NOT FOUND');
-    }
-    
     return value || key;
   };
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t, isClient }}>
+    <LanguageContext.Provider value={{ language, setLanguage, t, isClient, isHydrated }}>
       {children}
     </LanguageContext.Provider>
   );
