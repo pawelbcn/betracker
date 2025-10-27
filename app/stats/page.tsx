@@ -1,7 +1,7 @@
 "use client";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 import { TrendingUp, MapPin, Calendar, Euro, CalendarDays, TrendingDown } from 'lucide-react';
-import { calculateTotalExpensesMultiCurrency, calculateDailyAllowance, getExchangeRateForCurrency, calculateTotalExpensesByCurrency } from '@/logic/rules';
+import { calculateTotalExpensesMultiCurrencySync, calculateDailyAllowance, getExchangeRateForCurrency, calculateTotalExpensesByCurrency } from '@/logic/rules';
 import { useEffect, useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -87,7 +87,7 @@ export default function StatsPage() {
 
   // Calculate statistics for filtered data
   const totalExpenses = filteredDelegations.reduce((total, delegation) => {
-    return total + calculateTotalExpensesMultiCurrency(delegation.expenses);
+    return total + calculateTotalExpensesMultiCurrencySync(delegation.expenses);
   }, 0);
 
   // Calculate total expenses by original currency
@@ -113,7 +113,7 @@ export default function StatsPage() {
     });
     
     const monthExpenses = monthDelegations.reduce((sum, d) => 
-      sum + calculateTotalExpensesMultiCurrency(d.expenses), 0);
+      sum + calculateTotalExpensesMultiCurrencySync(d.expenses), 0);
     const monthAllowances = monthDelegations.reduce((sum, d) => 
       sum + calculateDailyAllowance(d), 0);
     
@@ -135,7 +135,7 @@ export default function StatsPage() {
     });
     
     const yearExpenses = yearDelegations.reduce((sum, d) => 
-      sum + calculateTotalExpensesMultiCurrency(d.expenses), 0);
+      sum + calculateTotalExpensesMultiCurrencySync(d.expenses), 0);
     const yearAllowances = yearDelegations.reduce((sum, d) => 
       sum + calculateDailyAllowance(d), 0);
     

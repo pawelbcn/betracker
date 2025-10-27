@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import DelegationForm from '@/components/DelegationForm';
 import PersistentAIAssistant from '@/components/PersistentAIAssistant';
 import { exportToPDF, exportToCSV } from '@/logic/export';
-import { calculateTotalExpensesMultiCurrency, calculateDailyAllowance } from '@/logic/rules';
+import { calculateTotalExpensesMultiCurrencySync, calculateDailyAllowance } from '@/logic/rules';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Delegation {
@@ -391,13 +391,13 @@ export default function Home() {
                           className="px-3 py-3 whitespace-nowrap text-sm text-neutral-600 cursor-pointer"
                           onClick={() => handleRowClick(delegation.id)}
                         >
-                          {calculateTotalExpensesMultiCurrency(delegation.expenses).toFixed(2)} PLN
+                               {calculateTotalExpensesMultiCurrencySync(delegation.expenses).toFixed(2)} PLN
                         </td>
                         <td 
                           className="px-3 py-3 whitespace-nowrap text-sm font-medium text-neutral-900 cursor-pointer"
                           onClick={() => handleRowClick(delegation.id)}
                         >
-                          {(calculateTotalExpensesMultiCurrency(delegation.expenses) + calculateDailyAllowance(delegation)).toFixed(2)} PLN
+                          {(calculateTotalExpensesMultiCurrencySync(delegation.expenses) + calculateDailyAllowance(delegation)).toFixed(2)} PLN
                         </td>
                         <td className="px-3 py-3 whitespace-nowrap">
                           <div className="flex gap-1">
@@ -481,11 +481,11 @@ export default function Home() {
                     
                     <div className="flex justify-between items-center mt-3 pt-3 border-t border-neutral-200">
                       <div className="text-sm text-neutral-600">
-                        <div>Expenses: {calculateTotalExpensesMultiCurrency(delegation.expenses).toFixed(2)} PLN</div>
+                        <div>Expenses: {calculateTotalExpensesMultiCurrencySync(delegation.expenses).toFixed(2)} PLN</div>
                         <div>Allowance: {calculateDailyAllowance(delegation).toFixed(2)} PLN</div>
                       </div>
                       <div className="text-lg font-semibold text-neutral-900">
-                        {(calculateTotalExpensesMultiCurrency(delegation.expenses) + calculateDailyAllowance(delegation)).toFixed(2)} PLN
+                        {(calculateTotalExpensesMultiCurrencySync(delegation.expenses) + calculateDailyAllowance(delegation)).toFixed(2)} PLN
                       </div>
                     </div>
                     

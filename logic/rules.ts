@@ -1,4 +1,5 @@
 import { differenceInDays } from 'date-fns';
+import { convertToPLN, getExchangeRatesForDate } from './exchangeRates';
 
 // Data models as per knowledgebase v0.2 section 2
 export interface Delegation {
@@ -58,9 +59,30 @@ export const calculateTotalExpenses = (expenses: Expense[], exchangeRate: number
 };
 
 /**
- * Calculate total expenses in PLN using currency-specific exchange rates
+ * Calculate total expenses in PLN using NBP exchange rates
+ * Handles multi-currency expenses as per section 3.1
+ * Uses exchange rate from last working day before delegation settlement date
  */
-export const calculateTotalExpensesMultiCurrency = (expenses: Expense[]): number => {
+export const calculateTotalExpensesMultiCurrency = async (expenses: Expense[], settlementDate: string): Promise<number> => {
+  if (expenses.length === 0) return 0;
+  
+  // Get unique currency codes
+  const currencyCodes = Array.from(new Set(expenses.map(expense => expense.currency)));
+  
+  // Get exchange rates for all currencies
+  const exchangeRates = await getExchangeRatesForDate(currencyCodes, settlementDate);
+  
+  return expenses.reduce((total, expense) => {
+    const rate = exchangeRates[expense.currency] || 1.0;
+    return total + (expense.amount * rate);
+  }, 0);
+};
+
+/**
+ * Calculate total expenses in PLN using exchange rates (synchronous fallback)
+ * This is kept for backward compatibility and when async is not available
+ */
+export const calculateTotalExpensesMultiCurrencySync = (expenses: Expense[]): number => {
   return expenses.reduce((total, expense) => {
     const exchangeRate = getExchangeRateForCurrency(expense.currency);
     return total + (expense.amount * exchangeRate);
@@ -122,12 +144,33 @@ export const calculateTotalExpensesOriginal = (expenses: Expense[]): number => {
 };
 
 /**
- * Calculate total expenses grouped by currency
+ * Calculate total expenses grouped by currency (original amounts)
  */
 export const calculateTotalExpensesByCurrency = (expenses: Expense[]): Record<string, number> => {
   return expenses.reduce((totals, expense) => {
     const currency = expense.currency;
     totals[currency] = (totals[currency] || 0) + expense.amount;
+    return totals;
+  }, {} as Record<string, number>);
+};
+
+/**
+ * Calculate total expenses grouped by currency converted to PLN using NBP rates
+ * Uses exchange rate from last working day before delegation settlement date
+ */
+export const calculateTotalExpensesByCurrencyPLN = async (expenses: Expense[], settlementDate: string): Promise<Record<string, number>> => {
+  if (expenses.length === 0) return {};
+  
+  // Get unique currency codes
+  const currencyCodes = Array.from(new Set(expenses.map(expense => expense.currency)));
+  
+  // Get exchange rates for all currencies
+  const exchangeRates = await getExchangeRatesForDate(currencyCodes, settlementDate);
+  
+  return expenses.reduce((totals, expense) => {
+    const rate = exchangeRates[expense.currency] || 1.0;
+    const convertedAmount = expense.amount * rate;
+    totals[expense.currency] = (totals[expense.currency] || 0) + convertedAmount;
     return totals;
   }, {} as Record<string, number>);
 };
