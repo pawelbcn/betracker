@@ -238,60 +238,60 @@ export default function DelegationPage({ params }: { params: { id: string } }) {
                       </div>
                     </div>
                     
-                    {/* Delegation Time Breakdown */}
-                    {(() => {
-                      const timeBreakdown = calculateDelegationTimeBreakdown(delegation);
-                      return (
-                        <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm">
-                            <div className="flex items-center gap-2">
-                              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                              <span className="font-medium text-blue-900">
-                                {timeBreakdown.hasTimeFields ? 'Delegation Time:' : 'Delegation Duration:'}
-                              </span>
-                            </div>
-                            <div className="flex flex-wrap items-center gap-3 text-blue-800">
-                              {timeBreakdown.hasTimeFields ? (
-                                <>
-                                  <span className="font-semibold">
-                                    {Math.floor(timeBreakdown.totalHours)}h {Math.round((timeBreakdown.totalHours % 1) * 60)}m
-                                  </span>
-                                  <span className="text-blue-600">•</span>
-                                  <span>
-                                    {timeBreakdown.fullDays} full day{timeBreakdown.fullDays !== 1 ? 's' : ''}
-                                    {timeBreakdown.partialDayHours > 0 && (
-                                      <span className="ml-1">
-                                        + {timeBreakdown.partialDayHours.toFixed(1)}h 
-                                        ({timeBreakdown.partialDayRate === 1/3 ? '1/3' : timeBreakdown.partialDayRate === 1/2 ? '1/2' : 'full'} day)
-                                      </span>
-                                    )}
-                                  </span>
-                                  <span className="text-blue-600">•</span>
-                                  <span className="font-semibold">
-                                    Total: {timeBreakdown.totalDays.toFixed(2)} day{timeBreakdown.totalDays !== 1 ? 's' : ''}
-                                  </span>
-                                </>
-                              ) : (
-                                <span className="font-semibold">
-                                  {timeBreakdown.totalDays} day{timeBreakdown.totalDays !== 1 ? 's' : ''}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          {timeBreakdown.hasTimeFields && (
-                            <div className="mt-2 text-xs text-blue-700">
-                              <span className="font-medium">Polish Law:</span> 
-                              {' '}Less than 8h = 1/3 day • 8-12h = 1/2 day • More than 12h = full day
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })()}
                   </div>
                   <div className="flex items-center gap-2 text-neutral-500">
                     <Utensils className="w-5 h-5" />
-                    <span className="text-sm font-medium">{delegation.daily_allowance} EUR/day</span>
+                    <span className="text-sm font-medium">{delegation.daily_allowance} EUR/day ({delegation.destination_country})</span>
                   </div>
+                </div>
+                
+                {/* Delegation Time Breakdown */}
+                {(() => {
+                  const timeBreakdown = calculateDelegationTimeBreakdown(delegation);
+                  return (
+                    <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                          <span className="font-medium text-blue-900">Delegation Time</span>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-3 text-blue-800">
+                          {timeBreakdown.hasTimeFields ? (
+                            <>
+                              <span className="font-semibold">
+                                {Math.floor(timeBreakdown.totalHours)}h {Math.round((timeBreakdown.totalHours % 1) * 60)}m
+                              </span>
+                              <span className="text-blue-600">•</span>
+                              <span>
+                                {timeBreakdown.fullDays} full day{timeBreakdown.fullDays !== 1 ? 's' : ''}
+                                {timeBreakdown.partialDayHours > 0 && (
+                                  <span className="ml-1">
+                                    + {timeBreakdown.partialDayHours.toFixed(1)}h 
+                                    ({timeBreakdown.partialDayRate === 1/3 ? '1/3' : timeBreakdown.partialDayRate === 1/2 ? '1/2' : 'full'} day)
+                                  </span>
+                                )}
+                              </span>
+                              <span className="text-blue-600">•</span>
+                              <span className="font-semibold">
+                                Total: {timeBreakdown.totalDays.toFixed(2)} day{timeBreakdown.totalDays !== 1 ? 's' : ''}
+                              </span>
+                            </>
+                          ) : (
+                            <span className="font-semibold">
+                              {timeBreakdown.totalDays} day{timeBreakdown.totalDays !== 1 ? 's' : ''}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      {timeBreakdown.hasTimeFields && (
+                        <div className="mt-2 text-xs text-blue-700">
+                          <span className="font-medium">Polish Law:</span> 
+                          {' '}Less than 8h = 1/3 day • 8-12h = 1/2 day • More than 12h = full day
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
                 </div>
               </div>
           
