@@ -14,8 +14,9 @@ export default function AuthWrapper({ children }: AuthWrapperProps) {
   const pathname = usePathname();
 
   useEffect(() => {
-    // Skip authentication check for login page
-    if (pathname === '/login') {
+    // Skip authentication check for public pages
+    const publicPages = ['/landing', '/login', '/register'];
+    if (publicPages.includes(pathname)) {
       setIsAuthenticated(true);
       setIsLoading(false);
       return;
@@ -28,8 +29,8 @@ export default function AuthWrapper({ children }: AuthWrapperProps) {
     if (authenticated === 'true' && username === 'pawel') {
       setIsAuthenticated(true);
     } else {
-      // Redirect to login page
-      router.push('/login');
+      // Redirect to landing page for unauthenticated users
+      router.push('/landing');
     }
     
     setIsLoading(false);
