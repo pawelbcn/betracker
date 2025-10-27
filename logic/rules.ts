@@ -140,6 +140,17 @@ export const calculateTotalExpensesByCurrency = (expenses: Expense[]): Record<st
  * - >12h → full day
  */
 export const calculateDailyAllowance = (delegation: Delegation): number => {
+  // Handle legacy delegations without time fields
+  if (!delegation.start_time || !delegation.end_time) {
+    // Fallback to old calculation for existing delegations
+    const days = differenceInDays(
+      new Date(delegation.end_date),
+      new Date(delegation.start_date)
+    ) + 1; // Include both start and end date
+    
+    return days * delegation.daily_allowance * delegation.exchange_rate;
+  }
+  
   const startDateTime = new Date(`${delegation.start_date}T${delegation.start_time}`);
   const endDateTime = new Date(`${delegation.end_date}T${delegation.end_time}`);
   
