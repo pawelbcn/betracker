@@ -38,12 +38,24 @@ export function SummaryCard({ delegation, expenses }: SummaryCardProps) {
         <div className="flex justify-between items-center text-neutral-600">
           <span>Total Expenses:</span>
           <div className="text-right">
-            {Object.entries(totalExpensesByCurrency).map(([currency, amount]) => (
-              <div key={currency} className="font-semibold text-neutral-900">
-                {amount.toFixed(2)} {currency}
-              </div>
-            ))}
-            <div className="text-sm text-neutral-500">{totalExpenses.toFixed(2)} PLN</div>
+            {Object.entries(totalExpensesByCurrency).map(([currency, amount]) => {
+              // Get original amounts for display
+              const originalAmounts = expenses
+                .filter(expense => expense.currency === currency)
+                .reduce((sum, expense) => sum + expense.amount, 0);
+              
+              return (
+                <div key={currency} className="mb-1">
+                  <div className="font-semibold text-neutral-900 text-lg">
+                    {amount.toFixed(2)} PLN
+                  </div>
+                  <div className="text-xs text-neutral-500">
+                    {originalAmounts.toFixed(2)} {currency}
+                  </div>
+                </div>
+              );
+            })}
+            <div className="text-sm text-neutral-500 font-semibold">{totalExpenses.toFixed(2)} PLN</div>
           </div>
         </div>
         
@@ -80,11 +92,23 @@ export function SummaryCard({ delegation, expenses }: SummaryCardProps) {
           <div className="flex justify-between items-center text-lg font-semibold text-neutral-900">
             <span>Total:</span>
             <div className="text-right">
-              {Object.entries(totalExpensesByCurrency).map(([currency, amount]) => (
-                <div key={currency} className="text-sm text-neutral-600">
-                  {amount.toFixed(2)} PLN ({currency} expenses)
-                </div>
-              ))}
+              {Object.entries(totalExpensesByCurrency).map(([currency, amount]) => {
+                // Get original amounts for display
+                const originalAmounts = expenses
+                  .filter(expense => expense.currency === currency)
+                  .reduce((sum, expense) => sum + expense.amount, 0);
+                
+                return (
+                  <div key={currency} className="text-sm text-neutral-600 mb-1">
+                    <div className="font-semibold text-lg">
+                      {amount.toFixed(2)} PLN
+                    </div>
+                    <div className="text-xs text-neutral-500">
+                      ({originalAmounts.toFixed(2)} {currency} expenses)
+                    </div>
+                  </div>
+                );
+              })}
               <div className="text-sm text-neutral-600">
                 Meals {totalAllowance.toFixed(2)} PLN
               </div>
