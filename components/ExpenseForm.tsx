@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { X, Save } from 'lucide-react';
+import { X, Save, TrendingUp, Calculator } from 'lucide-react';
+import { getExchangeRateForDate } from '@/logic/exchangeRates';
 
 interface ExpenseFormProps {
   isOpen: boolean;
@@ -27,6 +28,9 @@ export default function ExpenseForm({ isOpen, onClose, onSuccess, delegationId, 
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [exchangeRate, setExchangeRate] = useState<number | null>(null);
+  const [rateLoading, setRateLoading] = useState(false);
+  const [rateError, setRateError] = useState<string | null>(null);
 
   // Update form data when expense prop changes
   useEffect(() => {
@@ -49,6 +53,33 @@ export default function ExpenseForm({ isOpen, onClose, onSuccess, delegationId, 
       });
     }
   }, [expense]);
+
+  // Fetch exchange rate when currency and date change
+  useEffect(() => {
+    const fetchExchangeRate = async () => {
+      if (!formData.currency || !formData.date || formData.currency === 'PLN') {
+        setExchangeRate(null);
+        setRateError(null);
+        return;
+      }
+
+      setRateLoading(true);
+      setRateError(null);
+
+      try {
+        const rate = await getExchangeRateForDate(formData.currency, formData.date);
+        setExchangeRate(rate);
+      } catch (error) {
+        console.error('Error fetching exchange rate:', error);
+        setRateError('Failed to fetch exchange rate');
+        setExchangeRate(null);
+      } finally {
+        setRateLoading(false);
+      }
+    };
+
+    fetchExchangeRate();
+  }, [formData.currency, formData.date]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -259,6 +290,37 @@ export default function ExpenseForm({ isOpen, onClose, onSuccess, delegationId, 
                 </select>
               </div>
             </div>
+
+            {/* Exchange Rate Display and Conversion Preview */}
+            {formData.currency && formData.currency !== 'PLN' && formData.date && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <TrendingUp className="w-4 h-4 text-blue-600" />
+                  <span className="text-sm font-medium text-blue-900">Exchange Rate Information</span>
+                </div>
+                
+                {rateLoading ? (
+                  <div className="text-sm text-blue-700">Loading exchange rate...</div>
+                ) : rateError ? (
+                  <div className="text-sm text-red-600">⚠️ {rateError}</div>
+                ) : exchangeRate ? (
+                  <div className="space-y-2">
+                    <div className="text-sm text-blue-800">
+                      <strong>NBP Rate:</strong> 1 {formData.currency} = {exchangeRate.toFixed(4)} PLN
+                    </div>
+                    {formData.amount > 0 && (
+                      <div className="flex items-center gap-2 text-sm text-blue-800">
+                        <Calculator className="w-4 h-4" />
+                        <strong>Converted Amount:</strong> {formData.amount.toFixed(2)} {formData.currency} = {(formData.amount * exchangeRate).toFixed(2)} PLN
+                      </div>
+                    )}
+                    <div className="text-xs text-blue-600">
+                      Rate from last working day before {new Date(formData.date).toLocaleDateString()}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            )}
 
             <div>
               <label className="block text-sm font-medium text-neutral-700 mb-2">

@@ -11,6 +11,7 @@ import PersistentAIAssistant from '@/components/PersistentAIAssistant';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getExchangeRateForCurrency, calculateDelegationTimeBreakdown } from '@/logic/rules';
+import { getExchangeRateForDate } from '@/logic/exchangeRates';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Delegation {
@@ -36,6 +37,97 @@ interface Expense {
   amount: number;
   currency: string;
   description: string;
+}
+
+// Component for individual expense row with async rate fetching
+function ExpenseRow({ expense, onEdit, onDelete }: {
+  expense: Expense;
+  onEdit: (expense: Expense) => void;
+  onDelete: (id: string) => void;
+}) {
+  const [convertedAmount, setConvertedAmount] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchRate = async () => {
+      if (expense.currency === 'PLN') {
+        setConvertedAmount(expense.amount);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const rate = await getExchangeRateForDate(expense.currency, expense.date);
+        setConvertedAmount(expense.amount * rate);
+      } catch (error) {
+        console.error('Error fetching rate for expense:', error);
+        // Fallback to hardcoded rate
+        const fallbackRate = getExchangeRateForCurrency(expense.currency);
+        setConvertedAmount(expense.amount * fallbackRate);
+        setError('Using fallback rate');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRate();
+  }, [expense.currency, expense.date, expense.amount]);
+
+  return (
+    <tr className="hover:bg-neutral-50 transition-colors">
+      <td className="px-3 py-3 whitespace-nowrap text-sm text-neutral-600">
+        {new Date(expense.date).toLocaleDateString('en-GB')}
+      </td>
+      <td className="px-3 py-3 whitespace-nowrap">
+        <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-neutral-100 text-neutral-800 capitalize">
+          {expense.category}
+        </span>
+      </td>
+      <td className="px-3 py-3 text-sm text-neutral-900 max-w-[200px]">
+        <div className="truncate" title={expense.description}>
+          {expense.description}
+        </div>
+      </td>
+      <td className="px-3 py-3 whitespace-nowrap text-sm text-neutral-900 text-right font-medium">
+        {expense.amount.toFixed(2)} {expense.currency}
+      </td>
+      <td className="px-3 py-3 whitespace-nowrap text-sm text-neutral-900 text-right font-semibold">
+        {loading ? (
+          <span className="text-neutral-400">Loading...</span>
+        ) : convertedAmount !== null ? (
+          <div>
+            <div>{convertedAmount.toFixed(2)} PLN</div>
+            {error && (
+              <div className="text-xs text-orange-600" title={error}>
+                ⚠️ Fallback
+              </div>
+            )}
+          </div>
+        ) : (
+          <span className="text-red-500">Error</span>
+        )}
+      </td>
+      <td className="px-3 py-3 whitespace-nowrap text-sm text-neutral-600">
+        <div className="flex items-center justify-center gap-1">
+          <button
+            onClick={() => onEdit(expense)}
+            className="p-1 text-blue-600 hover:text-blue-800 transition-colors"
+            title="Edit expense"
+          >
+            <Edit className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => onDelete(expense.id)}
+            className="p-1 text-red-600 hover:text-red-800 transition-colors"
+            title="Delete expense"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      </td>
+    </tr>
+  );
 }
 
 export default function DelegationPage({ params }: { params: { id: string } }) {
@@ -342,45 +434,12 @@ export default function DelegationPage({ params }: { params: { id: string } }) {
                 </thead>
                 <tbody className="bg-white divide-y divide-neutral-200">
                   {expenses.map((expense) => (
-                    <tr key={expense.id} className="hover:bg-neutral-50 transition-colors">
-                      <td className="px-3 py-3 whitespace-nowrap text-sm text-neutral-600">
-                        {new Date(expense.date).toLocaleDateString('en-GB')}
-                      </td>
-                      <td className="px-3 py-3 whitespace-nowrap">
-                        <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-neutral-100 text-neutral-800 capitalize">
-                          {expense.category}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 text-sm text-neutral-900 max-w-[200px]">
-                        <div className="truncate" title={expense.description}>
-                          {expense.description}
-                        </div>
-                      </td>
-                      <td className="px-3 py-3 whitespace-nowrap text-sm text-neutral-900 text-right font-medium">
-                        {expense.amount.toFixed(2)} {expense.currency}
-                      </td>
-                      <td className="px-3 py-3 whitespace-nowrap text-sm text-neutral-900 text-right font-semibold">
-                        {(expense.amount * getExchangeRateForCurrency(expense.currency)).toFixed(2)}
-                      </td>
-                      <td className="px-3 py-3 whitespace-nowrap text-sm text-neutral-600">
-                        <div className="flex items-center justify-center gap-1">
-                          <button
-                            onClick={() => handleEditExpense(expense)}
-                            className="p-1 text-blue-600 hover:text-blue-800 transition-colors"
-                            title={t('delegation.edit_expense')}
-                          >
-                            <Edit className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteExpense(expense.id)}
-                            className="p-1 text-red-600 hover:text-red-800 transition-colors"
-                            title={t('delegation.delete_expense')}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
+                    <ExpenseRow
+                      key={expense.id}
+                      expense={expense}
+                      onEdit={handleEditExpense}
+                      onDelete={handleDeleteExpense}
+                    />
                   ))}
                 </tbody>
               </table>
