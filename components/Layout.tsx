@@ -11,6 +11,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { t } = useLanguage();
 
+  // Pages that should not have the sidebar
+  const noSidebarPages = ['/landing', '/login', '/register'];
+  const shouldShowSidebar = !noSidebarPages.includes(pathname);
+
   const handleLogout = () => {
     if (typeof window !== 'undefined') {
       sessionStorage.removeItem('authenticated');
@@ -28,8 +32,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen flex bg-neutral-50">
-      {/* Mobile menu overlay */}
-      {mobileMenuOpen && (
+      {shouldShowSidebar ? (
+        <>
+          {/* Mobile menu overlay */}
+          {mobileMenuOpen && (
         <div className="fixed inset-0 z-40 md:hidden">
           <div className="fixed inset-0 bg-black bg-opacity-25" onClick={() => setMobileMenuOpen(false)} />
           <div className="fixed inset-y-0 left-0 w-64 bg-white shadow-lg">
@@ -114,11 +120,14 @@ title={t('nav.logout')}
           </button>
         </nav>
       </aside>
+        </>
+      ) : null}
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col">
-        {/* Mobile Header */}
-        <div className="md:hidden bg-white border-b border-neutral-200 px-4 py-3 flex items-center justify-between">
+        {/* Mobile Header - only show on pages with sidebar */}
+        {shouldShowSidebar && (
+          <div className="md:hidden bg-white border-b border-neutral-200 px-4 py-3 flex items-center justify-between">
           <Link href="/landing" className="flex items-center gap-2">
             <Plane className="w-5 h-5 text-blue-600" />
             <span className="text-lg font-semibold text-neutral-900">Kalkulator Delegacji</span>
@@ -130,6 +139,7 @@ title={t('nav.logout')}
             <Menu className="w-5 h-5" />
           </button>
         </div>
+        )}
 
         {/* Content */}
         <div className="flex-1 px-3 md:px-4 py-4 md:py-6">

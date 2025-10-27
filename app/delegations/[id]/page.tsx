@@ -45,7 +45,6 @@ export default function DelegationPage({ params }: { params: { id: string } }) {
   const [loading, setLoading] = useState(true);
   const [showExpenseForm, setShowExpenseForm] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
-  const [showDelegationForm, setShowDelegationForm] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -75,14 +74,6 @@ export default function DelegationPage({ params }: { params: { id: string } }) {
     setEditingExpense(null);
   };
 
-  const handleDelegationSuccess = () => {
-    fetchDelegationData(); // Refresh the data
-    setShowDelegationForm(false);
-  };
-
-  const handleEditDelegation = () => {
-    setShowDelegationForm(true);
-  };
 
   const handleDeleteDelegation = async () => {
     if (confirm(t('delegation.confirm_delete'))) {
@@ -211,13 +202,13 @@ export default function DelegationPage({ params }: { params: { id: string } }) {
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                       <h1 className="text-2xl sm:text-3xl font-bold text-neutral-900">{delegation.title}</h1>
                       <div className="flex items-center gap-2">
-                        <button
-                          onClick={handleEditDelegation}
+                        <Link
+                          href={`/edit-delegation/${delegation.id}`}
                           className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition-colors"
                           title={t('delegation.edit_delegation')}
                         >
                           <Edit className="w-4 h-4" />
-                        </button>
+                        </Link>
                         <button
                           onClick={handleDeleteDelegation}
                           className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 transition-colors"
@@ -468,17 +459,6 @@ export default function DelegationPage({ params }: { params: { id: string } }) {
             expense={editingExpense}
           />
 
-          {/* Delegation Form Modal */}
-          <DelegationForm
-            isOpen={showDelegationForm}
-            onClose={() => setShowDelegationForm(false)}
-            onSuccess={handleDelegationSuccess}
-            delegation={{
-              ...delegation,
-              start_time: delegation.start_time || '09:00',
-              end_time: delegation.end_time || '17:00'
-            }}
-          />
 
           {/* Persistent AI Assistant */}
           <PersistentAIAssistant
