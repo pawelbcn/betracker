@@ -1,7 +1,7 @@
 import { jsPDF } from "jspdf";
-import { Delegation, Expense, calculateTotalExpenses, calculateDailyAllowance, calculateTripTotal, getExpenseCategoryInfo } from "./rules";
+import { Delegation, Expense, calculateTotalExpenses, calculateDailyAllowanceAsync, calculateTripTotal, getExpenseCategoryInfo } from "./rules";
 
-export function exportToPDF(delegation: Delegation, expenses: Expense[]): void {
+export async function exportToPDF(delegation: Delegation, expenses: Expense[]): Promise<void> {
   const doc = new jsPDF();
   
   // Header - Professional delegation report
@@ -58,7 +58,7 @@ export function exportToPDF(delegation: Delegation, expenses: Expense[]): void {
   y += 10;
   doc.setFontSize(12);
   const totalExpenses = calculateTotalExpenses(expenses, delegation.exchange_rate);
-  const totalAllowance = calculateDailyAllowance(delegation);
+  const totalAllowance = await calculateDailyAllowanceAsync(delegation);
   const tripTotal = calculateTripTotal(expenses, delegation);
   
   doc.text(`Total Expenses: ${totalExpenses.toFixed(2)} PLN`, 14, y);
@@ -84,7 +84,7 @@ export function exportToPDF(delegation: Delegation, expenses: Expense[]): void {
   doc.save(`delegation_${delegation.id}.pdf`);
 }
 
-export function exportToCSV(delegation: Delegation, expenses: Expense[]): void {
+export async function exportToCSV(delegation: Delegation, expenses: Expense[]): Promise<void> {
   const headers = ["Date", "Category", "Description", "Amount", "Currency", "PLN Value", "Deductible"];
   const rows = expenses.map(expense => {
     const categoryInfo = getExpenseCategoryInfo(expense.category);
@@ -103,7 +103,7 @@ export function exportToCSV(delegation: Delegation, expenses: Expense[]): void {
   
   // Add summary row
   const totalExpenses = calculateTotalExpenses(expenses, delegation.exchange_rate);
-  const totalAllowance = calculateDailyAllowance(delegation);
+  const totalAllowance = await calculateDailyAllowanceAsync(delegation);
   const tripTotal = calculateTripTotal(expenses, delegation);
   
   const summaryRows = [

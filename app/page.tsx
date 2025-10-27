@@ -5,8 +5,120 @@ import { Plane, MapPin, Calendar, Plus, Download, MessageCircle } from 'lucide-r
 import DelegationForm from '@/components/DelegationForm';
 import PersistentAIAssistant from '@/components/PersistentAIAssistant';
 import { exportToPDF, exportToCSV } from '@/logic/export';
-import { calculateTotalExpensesMultiCurrencySync, calculateDailyAllowance } from '@/logic/rules';
+import { calculateTotalExpensesMultiCurrencySync, calculateDailyAllowanceAsync } from '@/logic/rules';
 import { useLanguage } from '@/contexts/LanguageContext';
+
+// Component for individual delegation row with async calculations
+function DelegationRow({ delegation, isSelected, onSelect, onExportPDF, onExportCSV }: {
+  delegation: any;
+  isSelected: boolean;
+  onSelect: (id: string) => void;
+  onExportPDF: (delegation: any) => void;
+  onExportCSV: (delegation: any) => void;
+}) {
+  const [totalAllowance, setTotalAllowance] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const { t } = useLanguage();
+
+  useEffect(() => {
+    const calculateAllowance = async () => {
+      try {
+        const allowance = await calculateDailyAllowanceAsync(delegation);
+        setTotalAllowance(allowance);
+      } catch (error) {
+        console.error('Error calculating allowance:', error);
+        setTotalAllowance(0);
+      } finally {
+        setLoading(false);
+      }
+    };
+    calculateAllowance();
+  }, [delegation]);
+
+  const totalExpenses = calculateTotalExpensesMultiCurrencySync(delegation.expenses);
+  const total = totalExpenses + totalAllowance;
+
+  return (
+    <tr className="hover:bg-neutral-50">
+      <td className="px-6 py-4">
+        <input
+          type="checkbox"
+          checked={isSelected}
+          onChange={() => onSelect(delegation.id)}
+          className="rounded border-neutral-300 text-blue-600 focus:ring-blue-500"
+        />
+      </td>
+      <td className="px-6 py-4">
+        <div className="flex items-center">
+          <div>
+            <div className="text-sm font-medium text-neutral-900">{delegation.title}</div>
+          </div>
+        </div>
+      </td>
+      <td className="px-6 py-4">
+        <div className="flex items-center">
+          <MapPin className="w-4 h-4 text-neutral-400 mr-2" />
+          <div className="text-sm text-neutral-900">
+            {delegation.destination_city}, {delegation.destination_country}
+          </div>
+        </div>
+      </td>
+      <td className="px-6 py-4">
+        <div className="flex items-center">
+          <Calendar className="w-4 h-4 text-neutral-400 mr-2" />
+          <div className="text-sm text-neutral-900">
+            {new Date(delegation.start_date).toLocaleDateString()} - {new Date(delegation.end_date).toLocaleDateString()}
+          </div>
+        </div>
+      </td>
+      <td className="px-6 py-4">
+        <div className="text-sm text-neutral-900 max-w-xs truncate">
+          {delegation.purpose}
+        </div>
+      </td>
+      <td className="px-6 py-4 text-right">
+        <div className="text-sm font-medium text-neutral-900">
+          {loading ? '...' : `${totalAllowance.toFixed(2)} PLN`}
+        </div>
+      </td>
+      <td className="px-6 py-4 text-right">
+        <div className="text-sm font-medium text-neutral-900">
+          {loading ? '...' : `${totalExpenses.toFixed(2)} PLN`}
+        </div>
+      </td>
+      <td className="px-6 py-4 text-right">
+        <div className="text-sm font-semibold text-neutral-900">
+          {loading ? '...' : `${total.toFixed(2)} PLN`}
+        </div>
+      </td>
+      <td className="px-6 py-4 text-center">
+        <div className="flex items-center justify-center gap-2">
+          <button
+            onClick={() => onExportPDF(delegation)}
+            className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+            title="Eksportuj PDF"
+          >
+            <Download className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => onExportCSV(delegation)}
+            className="p-1 text-green-600 hover:bg-green-50 rounded transition-colors"
+            title="Eksportuj CSV"
+          >
+            <Download className="w-4 h-4" />
+          </button>
+          <a
+            href={`/delegations/${delegation.id}`}
+            className="p-1 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+            title="Zobacz szczegóły"
+          >
+            <MessageCircle className="w-4 h-4" />
+          </a>
+        </div>
+      </td>
+    </tr>
+  );
+}
 
 interface Delegation {
   id: string;
@@ -101,7 +213,7 @@ export default function Home() {
 
   const handleExportIndividualPDF = async (delegation: Delegation) => {
     try {
-      exportToPDF(delegation, delegation.expenses);
+      await exportToPDF(delegation, delegation.expenses);
     } catch (error) {
       console.error('Error exporting PDF:', error);
     }
@@ -109,7 +221,7 @@ export default function Home() {
 
   const handleExportIndividualCSV = async (delegation: Delegation) => {
     try {
-      exportToCSV(delegation, delegation.expenses);
+      await exportToCSV(delegation, delegation.expenses);
     } catch (error) {
       console.error('Error exporting CSV:', error);
     }
@@ -124,7 +236,7 @@ export default function Home() {
     try {
       // Export each delegation individually
       for (const delegation of selectedDelegationsData) {
-        exportToPDF(delegation, delegation.expenses);
+        await exportToPDF(delegation, delegation.expenses);
       }
     } catch (error) {
       console.error('Error exporting selected PDFs:', error);
@@ -140,7 +252,7 @@ export default function Home() {
     try {
       // Export each delegation individually
       for (const delegation of selectedDelegationsData) {
-        exportToCSV(delegation, delegation.expenses);
+        await exportToCSV(delegation, delegation.expenses);
       }
     } catch (error) {
       console.error('Error exporting selected CSVs:', error);
@@ -153,7 +265,7 @@ export default function Home() {
     try {
       // Export each delegation individually
       for (const delegation of delegations) {
-        exportToPDF(delegation, delegation.expenses);
+        await exportToPDF(delegation, delegation.expenses);
       }
     } catch (error) {
       console.error('Error exporting all PDFs:', error);
@@ -166,7 +278,7 @@ export default function Home() {
     try {
       // Export each delegation individually
       for (const delegation of delegations) {
-        exportToCSV(delegation, delegation.expenses);
+        await exportToCSV(delegation, delegation.expenses);
       }
     } catch (error) {
       console.error('Error exporting all CSVs:', error);
@@ -328,92 +440,16 @@ export default function Home() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-neutral-200">
-                {delegations.map((delegation) => {
-                  const totalExpenses = calculateTotalExpensesMultiCurrencySync(delegation.expenses);
-                  const totalAllowance = calculateDailyAllowance(delegation);
-                  const total = totalExpenses + totalAllowance;
-
-                  return (
-                    <tr key={delegation.id} className="hover:bg-neutral-50">
-                      <td className="px-6 py-4">
-                        <input
-                          type="checkbox"
-                          checked={selectedDelegations.has(delegation.id)}
-                          onChange={() => handleSelectDelegation(delegation.id)}
-                          className="rounded border-neutral-300 text-blue-600 focus:ring-blue-500"
-                        />
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center">
-                          <div>
-                            <div className="text-sm font-medium text-neutral-900">{delegation.title}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center">
-                          <MapPin className="w-4 h-4 text-neutral-400 mr-2" />
-                          <div className="text-sm text-neutral-900">
-                            {delegation.destination_city}, {delegation.destination_country}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center">
-                          <Calendar className="w-4 h-4 text-neutral-400 mr-2" />
-                          <div className="text-sm text-neutral-900">
-                            {new Date(delegation.start_date).toLocaleDateString()} - {new Date(delegation.end_date).toLocaleDateString()}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm text-neutral-900 max-w-xs truncate">
-                          {delegation.purpose}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="text-sm font-medium text-neutral-900">
-                          {totalAllowance.toFixed(2)} PLN
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="text-sm font-medium text-neutral-900">
-                          {totalExpenses.toFixed(2)} PLN
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="text-sm font-semibold text-neutral-900">
-                          {total.toFixed(2)} PLN
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <button
-                            onClick={() => handleExportIndividualPDF(delegation)}
-                            className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
-                            title="Eksportuj PDF"
-                          >
-                            <Download className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleExportIndividualCSV(delegation)}
-                            className="p-1 text-green-600 hover:bg-green-50 rounded transition-colors"
-                            title="Eksportuj CSV"
-                          >
-                            <Download className="w-4 h-4" />
-                          </button>
-                          <a
-                            href={`/delegations/${delegation.id}`}
-                            className="p-1 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                            title="Zobacz szczegóły"
-                          >
-                            <MessageCircle className="w-4 h-4" />
-                          </a>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
+                {delegations.map((delegation) => (
+                  <DelegationRow
+                    key={delegation.id}
+                    delegation={delegation}
+                    isSelected={selectedDelegations.has(delegation.id)}
+                    onSelect={handleSelectDelegation}
+                    onExportPDF={handleExportIndividualPDF}
+                    onExportCSV={handleExportIndividualCSV}
+                  />
+                ))}
               </tbody>
             </table>
           </div>

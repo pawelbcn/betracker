@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { calculateTotalExpensesMultiCurrency, calculateTotalExpensesByCurrency, calculateTotalExpensesByCurrencyPLN, calculateTotalExpensesMultiCurrencySync, calculateDailyAllowance, calculateDelegationTimeBreakdown, getExchangeRateForCurrency, Delegation, Expense } from '@/logic/rules';
+import { calculateTotalExpensesMultiCurrency, calculateTotalExpensesByCurrency, calculateTotalExpensesByCurrencyPLN, calculateTotalExpensesMultiCurrencySync, calculateDailyAllowanceAsync, calculateDelegationTimeBreakdown, getExchangeRateForCurrency, Delegation, Expense } from '@/logic/rules';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 interface SummaryCardProps {
@@ -14,8 +14,25 @@ export function SummaryCard({ delegation, expenses }: SummaryCardProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  const totalAllowance = calculateDailyAllowance(delegation);
+  const [totalAllowance, setTotalAllowance] = useState(0);
+  const [allowanceLoading, setAllowanceLoading] = useState(true);
   const timeBreakdown = calculateDelegationTimeBreakdown(delegation);
+  
+  useEffect(() => {
+    const calculateAllowance = async () => {
+      try {
+        const allowance = await calculateDailyAllowanceAsync(delegation);
+        setTotalAllowance(allowance);
+      } catch (error) {
+        console.error('Error calculating allowance:', error);
+        setTotalAllowance(0);
+      } finally {
+        setAllowanceLoading(false);
+      }
+    };
+    calculateAllowance();
+  }, [delegation]);
+  
   const tripTotal = totalExpenses + totalAllowance;
 
   // Calculate expenses using NBP rates
@@ -112,7 +129,9 @@ export function SummaryCard({ delegation, expenses }: SummaryCardProps) {
         <div className="flex justify-between items-center text-neutral-600">
           <span>Meals Allowance:</span>
           <div className="text-right">
-            <div className="font-semibold text-neutral-900">{totalAllowance.toFixed(2)} PLN</div>
+            <div className="font-semibold text-neutral-900">
+              {allowanceLoading ? '...' : `${totalAllowance.toFixed(2)} PLN`}
+            </div>
             <div className="text-xs text-neutral-500">
               {timeBreakdown.hasTimeFields ? (
                 <>
@@ -164,7 +183,7 @@ export function SummaryCard({ delegation, expenses }: SummaryCardProps) {
                     );
                   })}
                   <div className="text-sm text-neutral-600">
-                    Meals {totalAllowance.toFixed(2)} PLN
+                    Meals {allowanceLoading ? '...' : `${totalAllowance.toFixed(2)} PLN`}
                   </div>
                   <div className="text-lg font-semibold text-neutral-900 pt-1">
                     = {tripTotal.toFixed(2)} PLN

@@ -40,9 +40,6 @@ export async function POST(request: NextRequest) {
     if (!body.purpose || typeof body.purpose !== 'string' || body.purpose.trim().length === 0) {
       return NextResponse.json({ error: 'Purpose is required' }, { status: 400 })
     }
-    if (typeof body.exchange_rate !== 'number' || body.exchange_rate <= 0) {
-      return NextResponse.json({ error: 'Valid exchange rate is required' }, { status: 400 })
-    }
     if (typeof body.daily_allowance !== 'number' || body.daily_allowance <= 0) {
       return NextResponse.json({ error: 'Valid daily allowance is required' }, { status: 400 })
     }
@@ -55,7 +52,7 @@ export async function POST(request: NextRequest) {
         start_date: new Date(body.start_date),
         end_date: new Date(body.end_date),
         purpose: body.purpose.trim(),
-        exchange_rate: parseFloat(body.exchange_rate),
+        exchange_rate: 4.35, // Default fallback rate - will be replaced by NBP rates
         daily_allowance: parseFloat(body.daily_allowance),
         notes: body.notes ? body.notes.trim() : null
       }

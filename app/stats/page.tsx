@@ -1,7 +1,7 @@
 "use client";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 import { TrendingUp, MapPin, Calendar, Euro, CalendarDays, TrendingDown } from 'lucide-react';
-import { calculateTotalExpensesMultiCurrencySync, calculateDailyAllowance, getExchangeRateForCurrency, calculateTotalExpensesByCurrency } from '@/logic/rules';
+import { calculateTotalExpensesMultiCurrencySync, calculateDailyAllowanceAsync, getExchangeRateForCurrency, calculateTotalExpensesByCurrency } from '@/logic/rules';
 import { useEffect, useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -37,6 +37,8 @@ export default function StatsPage() {
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'monthly' | 'yearly'>('monthly');
   const [isClient, setIsClient] = useState(false);
+  const [allowances, setAllowances] = useState<Record<string, number>>({});
+  const [allowancesLoading, setAllowancesLoading] = useState(true);
 
   const fetchDelegations = async () => {
     try {
@@ -57,6 +59,31 @@ export default function StatsPage() {
     setIsClient(true);
     fetchDelegations();
   }, []);
+
+  // Calculate allowances asynchronously
+  useEffect(() => {
+    const calculateAllowances = async () => {
+      if (delegations.length === 0) return;
+      
+      setAllowancesLoading(true);
+      const allowanceMap: Record<string, number> = {};
+      
+      for (const delegation of delegations) {
+        try {
+          const allowance = await calculateDailyAllowanceAsync(delegation);
+          allowanceMap[delegation.id] = allowance;
+        } catch (error) {
+          console.error('Error calculating allowance for delegation:', delegation.id, error);
+          allowanceMap[delegation.id] = 0;
+        }
+      }
+      
+      setAllowances(allowanceMap);
+      setAllowancesLoading(false);
+    };
+    
+    calculateAllowances();
+  }, [delegations]);
 
   // Don't render until we're on the client side
   if (!isClient) {
@@ -100,7 +127,7 @@ export default function StatsPage() {
   }, {} as Record<string, number>);
 
   const totalAllowances = filteredDelegations.reduce((total, delegation) => {
-    return total + calculateDailyAllowance(delegation);
+    return total + (allowances[delegation.id] || 0);
   }, 0);
 
   const grandTotal = totalExpenses + totalAllowances;
@@ -115,7 +142,7 @@ export default function StatsPage() {
     const monthExpenses = monthDelegations.reduce((sum, d) => 
       sum + calculateTotalExpensesMultiCurrencySync(d.expenses), 0);
     const monthAllowances = monthDelegations.reduce((sum, d) => 
-      sum + calculateDailyAllowance(d), 0);
+      sum + (allowances[d.id] || 0), 0);
     
     return {
       month: new Date(currentYear, i).toLocaleDateString('en-US', { month: 'short' }),
@@ -137,7 +164,7 @@ export default function StatsPage() {
     const yearExpenses = yearDelegations.reduce((sum, d) => 
       sum + calculateTotalExpensesMultiCurrencySync(d.expenses), 0);
     const yearAllowances = yearDelegations.reduce((sum, d) => 
-      sum + calculateDailyAllowance(d), 0);
+      sum + (allowances[d.id] || 0), 0);
     
     return {
       year: year.toString(),
@@ -153,12 +180,12 @@ export default function StatsPage() {
     const existing = acc.find(item => item.country === delegation.destination_country);
     if (existing) {
       existing.count++;
-      existing.amount += calculateDailyAllowance(delegation);
+      existing.amount += (allowances[delegation.id] || 0);
     } else {
       acc.push({
         country: delegation.destination_country,
         count: 1,
-        amount: calculateDailyAllowance(delegation)
+        amount: (allowances[delegation.id] || 0)
       });
     }
     return acc;

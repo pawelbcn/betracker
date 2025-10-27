@@ -16,7 +16,6 @@ interface DelegationFormProps {
     end_date: string;
     end_time: string;
     purpose: string;
-    exchange_rate: number;
     daily_allowance: number;
     notes?: string;
   } | null;
@@ -29,7 +28,6 @@ interface DelegationFormProps {
     end_date?: string;
     end_time?: string;
     purpose?: string;
-    exchange_rate?: number;
     daily_allowance?: number;
     notes?: string;
   };
@@ -52,7 +50,6 @@ export default function DelegationForm({ isOpen, onClose, onSuccess, delegation,
     end_date: delegation?.end_date ? delegation.end_date.split('T')[0] : initialData?.end_date || '',
     end_time: delegation?.end_time || initialData?.end_time || '17:00',
     purpose: delegation?.purpose || initialData?.purpose || '',
-    exchange_rate: delegation?.exchange_rate || initialData?.exchange_rate || 4.35,
     daily_allowance: delegation?.daily_allowance || initialData?.daily_allowance || 43,
     notes: delegation?.notes || initialData?.notes || ''
   });
@@ -71,7 +68,6 @@ export default function DelegationForm({ isOpen, onClose, onSuccess, delegation,
         end_date: delegation.end_date ? delegation.end_date.split('T')[0] : '',
         end_time: delegation.end_time || '17:00',
         purpose: delegation.purpose || '',
-        exchange_rate: delegation.exchange_rate || 4.35,
         daily_allowance: delegation.daily_allowance || 43,
         notes: delegation.notes || ''
       });
@@ -86,7 +82,6 @@ export default function DelegationForm({ isOpen, onClose, onSuccess, delegation,
         end_date: initialData.end_date || '',
         end_time: initialData.end_time || '17:00',
         purpose: initialData.purpose || '',
-        exchange_rate: initialData.exchange_rate || 4.35,
         daily_allowance: initialData.daily_allowance || 43,
         notes: initialData.notes || ''
       });
@@ -101,7 +96,6 @@ export default function DelegationForm({ isOpen, onClose, onSuccess, delegation,
         end_date: '',
         end_time: '17:00',
         purpose: '',
-        exchange_rate: 4.35,
         daily_allowance: 43,
         notes: ''
       });
@@ -141,11 +135,6 @@ export default function DelegationForm({ isOpen, onClose, onSuccess, delegation,
     }
     if (!formData.purpose.trim()) {
       setError('Purpose is required');
-      setLoading(false);
-      return;
-    }
-    if (formData.exchange_rate <= 0) {
-      setError('Exchange rate must be greater than 0');
       setLoading(false);
       return;
     }
@@ -206,7 +195,6 @@ export default function DelegationForm({ isOpen, onClose, onSuccess, delegation,
           end_date: '',
           end_time: '17:00',
           purpose: '',
-          exchange_rate: 4.35,
           daily_allowance: 43,
           notes: ''
         });
@@ -226,7 +214,7 @@ export default function DelegationForm({ isOpen, onClose, onSuccess, delegation,
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'exchange_rate' || name === 'daily_allowance' ? parseFloat(value) || 0 : value
+      [name]: name === 'daily_allowance' ? parseFloat(value) || 0 : value
     }));
   };
 
@@ -391,8 +379,8 @@ export default function DelegationForm({ isOpen, onClose, onSuccess, delegation,
               </div>
             </div>
 
-            {/* Fifth line: Daily Allowance and Exchange Rate */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Fifth line: Daily Allowance */}
+            <div className="grid grid-cols-1 gap-6">
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-2">
                   Daily Allowance (EUR) *
@@ -407,22 +395,9 @@ export default function DelegationForm({ isOpen, onClose, onSuccess, delegation,
                   className="w-full px-3 py-2 border border-neutral-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="43"
                 />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-2">
-                  Exchange Rate (EUR to PLN) *
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  name="exchange_rate"
-                  value={formData.exchange_rate}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-3 py-2 border border-neutral-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="4.35"
-                />
+                <p className="text-xs text-neutral-500 mt-1">
+                  Exchange rate will be automatically fetched from NBP (Polish National Bank)
+                </p>
               </div>
             </div>
 
