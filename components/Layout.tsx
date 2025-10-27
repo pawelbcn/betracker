@@ -1,13 +1,15 @@
 "use client";
-import { FileText, Home, BarChart3, Plane, Menu, X, LogOut } from "lucide-react";
+import { FileText, Home, BarChart3, Plane, Menu, X, LogOut, Settings, Globe } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { t, language } = useLanguage();
 
   const handleLogout = () => {
     if (typeof window !== 'undefined') {
@@ -18,8 +20,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   };
 
   const navigation = [
-    { name: "Business Travel", href: "/", icon: Plane },
-    { name: "Statistics", href: "/stats", icon: BarChart3 },
+    { name: t('nav.business_travel'), href: "/", icon: Plane },
+    { name: t('nav.statistics'), href: "/stats", icon: BarChart3 },
+    { name: t('nav.settings'), href: "/settings", icon: Settings },
   ];
 
   return (
@@ -34,12 +37,18 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 <Plane className="w-5 h-5 text-blue-600" />
                 <span className="text-lg font-semibold text-neutral-900">Business Travel Tracker</span>
               </div>
-              <button
-                onClick={() => setMobileMenuOpen(false)}
-                className="p-2 hover:bg-neutral-100 transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 px-2 py-1 bg-neutral-100 rounded text-sm">
+                  <Globe className="w-4 h-4" />
+                  <span className="uppercase font-medium">{language}</span>
+                </div>
+                <button
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="p-2 hover:bg-neutral-100 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             </div>
             <nav className="p-4 space-y-2">
               {navigation.map((item) => {
@@ -65,7 +74,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 className="flex items-center gap-3 px-3 py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors w-full"
               >
                 <LogOut className="w-6 h-6" />
-                Logout
+                {t('nav.logout')}
               </button>
             </nav>
           </div>
@@ -96,10 +105,21 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               </Link>
             );
           })}
+          
+          {/* Language Switcher */}
+          <div className="pt-4 border-t border-neutral-200">
+            <div className="flex items-center justify-center p-2 text-neutral-600" title={t('nav.language')}>
+              <Globe className="w-6 h-6" />
+            </div>
+            <div className="text-xs text-center text-neutral-500 uppercase font-medium">
+              {language}
+            </div>
+          </div>
+          
           <button
             onClick={handleLogout}
             className="flex items-center justify-center p-2 text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors"
-            title="Logout"
+            title={t('nav.logout')}
           >
             <LogOut className="w-6 h-6" />
           </button>

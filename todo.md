@@ -1,8 +1,11 @@
 todo.md
-1. also add language switcher in left navigation and user settings  gear icon for page where user can select default language 
 
-2.
-Speed Insights
+
+2. can we integrate vectal  Speed Insights 
+
+i see this intructions in my vectal project
+
+ Speed Insights 
 betracker.vercel.app
 
 Production

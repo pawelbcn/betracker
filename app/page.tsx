@@ -6,6 +6,7 @@ import DelegationForm from '@/components/DelegationForm';
 import PersistentAIAssistant from '@/components/PersistentAIAssistant';
 import { exportToPDF, exportToCSV } from '@/logic/export';
 import { calculateTotalExpensesMultiCurrency, calculateDailyAllowance } from '@/logic/rules';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Delegation {
   id: string;
@@ -42,6 +43,7 @@ export default function Home() {
   const [isClient, setIsClient] = useState(false);
   const [selectedDelegations, setSelectedDelegations] = useState<Set<string>>(new Set());
   const router = useRouter();
+  const { t } = useLanguage();
 
   const fetchDelegations = async () => {
     try {
@@ -196,8 +198,8 @@ export default function Home() {
     return (
       <div className="space-y-8">
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-neutral-900">Business Travel</h1>
-          <p className="text-neutral-600">Track and manage your business travel expenses</p>
+          <h1 className="text-3xl font-bold text-neutral-900">{t('main.title')}</h1>
+          <p className="text-neutral-600">{t('main.subtitle')}</p>
         </div>
         <div className="flex items-center justify-center py-12">
           <div className="text-neutral-500">Loading business travel...</div>
@@ -212,25 +214,25 @@ export default function Home() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-neutral-900">Business Travel</h1>
-            <p className="text-neutral-600">Track and manage your business travel expenses</p>
+            <h1 className="text-3xl font-bold text-neutral-900">{t('main.title')}</h1>
+            <p className="text-neutral-600">{t('main.subtitle')}</p>
           </div>
           <button
             onClick={() => setShowDelegationForm(true)}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 transition-colors"
           >
             <Plus className="w-4 h-4" />
-            Add Business Travel
+            {t('main.add_travel')}
           </button>
         </div>
 
         {/* Export Section */}
         <div className="card p-4">
-          <h2 className="text-lg font-semibold text-neutral-900 mb-3">Export Business Travel</h2>
+          <h2 className="text-lg font-semibold text-neutral-900 mb-3">{t('main.export_all')}</h2>
           <p className="text-neutral-600 mb-3">
             {selectedDelegations.size > 0 
-              ? `Export ${selectedDelegations.size} selected business travel(s)`
-              : "Export all business travel at once for accounting purposes"
+              ? t('main.export_selected').replace('{count}', selectedDelegations.size.toString())
+              : t('main.export_all_desc')
             }
           </p>
           <div className="flex flex-wrap gap-3">
@@ -241,20 +243,20 @@ export default function Home() {
                   className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white hover:bg-red-700 transition-colors"
                 >
                   <Download className="w-4 h-4" />
-                  Export Selected PDFs ({selectedDelegations.size})
+                  {t('main.export_selected_pdfs').replace('{count}', selectedDelegations.size.toString())}
                 </button>
                 <button
                   onClick={handleExportSelectedCSVs}
                   className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white hover:bg-green-700 transition-colors"
                 >
                   <Download className="w-4 h-4" />
-                  Export Selected CSVs ({selectedDelegations.size})
+                  {t('main.export_selected_csvs').replace('{count}', selectedDelegations.size.toString())}
                 </button>
                 <button
                   onClick={() => setSelectedDelegations(new Set())}
                   className="flex items-center gap-2 px-4 py-2 bg-neutral-500 text-white hover:bg-neutral-600 transition-colors"
                 >
-                  Clear Selection
+                  {t('main.clear_selection')}
                 </button>
               </>
             ) : (
@@ -264,14 +266,14 @@ export default function Home() {
                   className="flex items-center gap-2 px-4 py-2 bg-neutral-900 text-white hover:bg-neutral-800 transition-colors"
                 >
                   <Download className="w-4 h-4" />
-                  Export All PDFs
+                  {t('main.export_all_pdfs')}
                 </button>
                 <button
                   onClick={exportAllToCSV}
                   className="flex items-center gap-2 px-4 py-2 bg-neutral-200 text-neutral-900 hover:bg-neutral-300 transition-colors"
                 >
                   <Download className="w-4 h-4" />
-                  Export All CSVs
+                  {t('main.export_all_csvs')}
                 </button>
               </>
             )}
@@ -297,28 +299,28 @@ export default function Home() {
                         />
                       </th>
                       <th className="px-3 py-2 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                        Business Travel
+                        {t('table.business_travel')}
                       </th>
                       <th className="px-3 py-2 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                        Destination
+                        {t('table.destination')}
                       </th>
                       <th className="px-3 py-2 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                        Dates
+                        {t('table.dates')}
                       </th>
                       <th className="px-3 py-2 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                        Purpose
+                        {t('table.purpose')}
                       </th>
                       <th className="px-3 py-2 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                        Meals Allowance
+                        {t('table.meals_allowance')}
                       </th>
                       <th className="px-3 py-2 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                        Expenses
+                        {t('table.expenses')}
                       </th>
                       <th className="px-3 py-2 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                        Total
+                        {t('table.total')}
                       </th>
                       <th className="px-3 py-2 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider w-32">
-                        Actions
+                        {t('table.actions')}
                       </th>
                     </tr>
                   </thead>
@@ -462,15 +464,15 @@ export default function Home() {
                     </span>
                   </div>
                   
-                  <div className="space-y-2">
+          <div className="space-y-2">
                     <div className="flex items-center text-sm text-neutral-600">
                       <MapPin className="w-4 h-4 text-neutral-400 mr-2" />
-                      {delegation.destination_city}, {delegation.destination_country}
+                  {delegation.destination_city}, {delegation.destination_country}
                     </div>
                     
                     <div className="flex items-center text-sm text-neutral-600">
                       <Calendar className="w-4 h-4 text-neutral-400 mr-2" />
-                      {new Date(delegation.start_date).toLocaleDateString()} - {new Date(delegation.end_date).toLocaleDateString()}
+                  {new Date(delegation.start_date).toLocaleDateString()} - {new Date(delegation.end_date).toLocaleDateString()}
                     </div>
                     
                     <p className="text-sm text-neutral-700 mt-2 line-clamp-2">
