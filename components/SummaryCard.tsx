@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { calculateTotalExpensesMultiCurrency, calculateTotalExpensesByCurrency, calculateTotalExpensesByCurrencyPLN, calculateTotalExpensesMultiCurrencySync, calculateDailyAllowanceAsync, calculateDelegationTimeBreakdown, getExchangeRateForCurrency, Delegation, Expense } from '@/logic/rules';
+import { getExchangeRateForDate } from '@/logic/exchangeRates';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 interface SummaryCardProps {
@@ -13,6 +14,7 @@ export function SummaryCard({ delegation, expenses }: SummaryCardProps) {
   const [totalExpensesByCurrency, setTotalExpensesByCurrency] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [exchangeRateDetails, setExchangeRateDetails] = useState<Record<string, { rate: number; date: string; amount: number; convertedAmount: number }>>({});
   
   const [totalAllowance, setTotalAllowance] = useState(0);
   const [allowanceLoading, setAllowanceLoading] = useState(true);
@@ -49,6 +51,48 @@ export function SummaryCard({ delegation, expenses }: SummaryCardProps) {
         
         setTotalExpenses(total);
         setTotalExpensesByCurrency(byCurrency);
+        
+        // Calculate detailed exchange rate information
+        const rateDetails: Record<string, { rate: number; date: string; amount: number; convertedAmount: number }> = {};
+        
+        // Group expenses by currency
+        const expensesByCurrency = expenses.reduce((acc, expense) => {
+          if (expense.currency === 'PLN') return acc;
+          if (!acc[expense.currency]) acc[expense.currency] = [];
+          acc[expense.currency].push(expense);
+          return acc;
+        }, {} as Record<string, Expense[]>);
+        
+        // Fetch rates for each currency
+        for (const [currency, currencyExpenses] of Object.entries(expensesByCurrency)) {
+          try {
+            // Use the first expense's date as representative for the currency
+            const representativeDate = currencyExpenses[0].date;
+            const rate = await getExchangeRateForDate(currency, representativeDate);
+            const totalAmount = currencyExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+            
+            rateDetails[currency] = {
+              rate,
+              date: representativeDate,
+              amount: totalAmount,
+              convertedAmount: totalAmount * rate
+            };
+          } catch (error) {
+            console.error(`Error fetching rate for ${currency}:`, error);
+            // Use fallback rate
+            const fallbackRate = getExchangeRateForCurrency(currency);
+            const totalAmount = currencyExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+            
+            rateDetails[currency] = {
+              rate: fallbackRate,
+              date: currencyExpenses[0].date,
+              amount: totalAmount,
+              convertedAmount: totalAmount * fallbackRate
+            };
+          }
+        }
+        
+        setExchangeRateDetails(rateDetails);
       } catch (err) {
         console.error('Error calculating expenses:', err);
         setError(err instanceof Error ? err.message : 'Failed to calculate expenses');
@@ -103,24 +147,21 @@ export function SummaryCard({ delegation, expenses }: SummaryCardProps) {
               <div className="text-sm text-neutral-500">Loading exchange rates...</div>
             ) : (
               <>
-                {Object.entries(totalExpensesByCurrency).map(([currency, amount]) => {
-                  // Get original amounts for display
-                  const originalAmounts = expenses
-                    .filter(expense => expense.currency === currency)
-                    .reduce((sum, expense) => sum + expense.amount, 0);
-                  
-                  return (
-                    <div key={currency} className="mb-1">
-                      <div className="font-semibold text-neutral-900 text-lg">
-                        {amount.toFixed(2)} PLN
-                      </div>
-                      <div className="text-xs text-neutral-500">
-                        {originalAmounts.toFixed(2)} {currency}
-                      </div>
+                {/* Show only original currency amounts */}
+                {Object.entries(expenses.reduce((acc, expense) => {
+                  if (expense.currency === 'PLN') {
+                    acc['PLN'] = (acc['PLN'] || 0) + expense.amount;
+                  } else {
+                    acc[expense.currency] = (acc[expense.currency] || 0) + expense.amount;
+                  }
+                  return acc;
+                }, {} as Record<string, number>)).map(([currency, amount]) => (
+                  <div key={currency} className="mb-1">
+                    <div className="font-semibold text-neutral-900 text-lg">
+                      {amount.toFixed(2)} {currency}
                     </div>
-                  );
-                })}
-                <div className="text-sm text-neutral-500 font-semibold">{totalExpenses.toFixed(2)} PLN</div>
+                  </div>
+                ))}
               </>
             )}
           </div>
@@ -158,39 +199,97 @@ export function SummaryCard({ delegation, expenses }: SummaryCardProps) {
         </div>
         
         <div className="pt-3 border-t border-neutral-200">
-          <div className="flex justify-between items-center text-lg font-semibold text-neutral-900">
-            <span>Total:</span>
-            <div className="text-right">
-              {loading ? (
-                <div className="text-sm text-neutral-500">Loading...</div>
-              ) : (
-                <>
-                  {Object.entries(totalExpensesByCurrency).map(([currency, amount]) => {
-                    // Get original amounts for display
-                    const originalAmounts = expenses
-                      .filter(expense => expense.currency === currency)
-                      .reduce((sum, expense) => sum + expense.amount, 0);
-                    
-                    return (
-                      <div key={currency} className="text-sm text-neutral-600 mb-1">
-                        <div className="font-semibold text-lg">
-                          {amount.toFixed(2)} PLN
-                        </div>
-                        <div className="text-xs text-neutral-500">
-                          ({originalAmounts.toFixed(2)} {currency} expenses)
-                        </div>
+          <div className="space-y-3">
+            <div className="text-lg font-semibold text-neutral-900 mb-3">Total Breakdown:</div>
+            
+            {loading ? (
+              <div className="text-sm text-neutral-500">Loading exchange rates...</div>
+            ) : (
+              <div className="space-y-2">
+                {/* Show detailed breakdown with exchange rates */}
+                {Object.entries(exchangeRateDetails).map(([currency, details]) => (
+                  <div key={currency} className="flex justify-between items-center text-sm">
+                    <div className="text-neutral-600">
+                      {details.amount.toFixed(2)} {currency}
+                    </div>
+                    <div className="text-right">
+                      <div className="font-semibold text-neutral-900">
+                        {details.convertedAmount.toFixed(2)} PLN
                       </div>
-                    );
-                  })}
-                  <div className="text-sm text-neutral-600">
-                    Meals {allowanceLoading ? '...' : `${totalAllowance.toFixed(2)} PLN`}
+                      <div className="text-xs text-neutral-500">
+                        Rate: 1 {currency} = {details.rate.toFixed(4)} PLN
+                      </div>
+                      <div className="text-xs text-neutral-500">
+                        Date: {new Date(details.date).toLocaleDateString()}
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-lg font-semibold text-neutral-900 pt-1">
-                    = {tripTotal.toFixed(2)} PLN
+                ))}
+                
+                {/* PLN expenses */}
+                {expenses.filter(e => e.currency === 'PLN').length > 0 && (
+                  <div className="flex justify-between items-center text-sm">
+                    <div className="text-neutral-600">
+                      {expenses
+                        .filter(e => e.currency === 'PLN')
+                        .reduce((sum, expense) => sum + expense.amount, 0)
+                        .toFixed(2)} PLN
+                    </div>
+                    <div className="text-right">
+                      <div className="font-semibold text-neutral-900">
+                        {expenses
+                          .filter(e => e.currency === 'PLN')
+                          .reduce((sum, expense) => sum + expense.amount, 0)
+                          .toFixed(2)} PLN
+                      </div>
+                      <div className="text-xs text-neutral-500">
+                        (No conversion needed)
+                      </div>
+                    </div>
                   </div>
-                </>
-              )}
-            </div>
+                )}
+                
+                {/* Meals allowance */}
+                <div className="flex justify-between items-center text-sm">
+                  <div className="text-neutral-600">Meals Allowance</div>
+                  <div className="text-right">
+                    <div className="font-semibold text-neutral-900">
+                      {allowanceLoading ? '...' : `${totalAllowance.toFixed(2)} PLN`}
+                    </div>
+                    <div className="text-xs text-neutral-500">
+                      {timeBreakdown.hasTimeFields ? (
+                        <>
+                          {timeBreakdown.fullDays > 0 && (
+                            <span>
+                              {timeBreakdown.fullDays} × {delegation.daily_allowance} EUR
+                              {timeBreakdown.partialDayHours > 0 && ' + '}
+                            </span>
+                          )}
+                          {timeBreakdown.partialDayHours > 0 && (
+                            <span>
+                              {timeBreakdown.partialDayRate === 1/3 ? '1/3' : timeBreakdown.partialDayRate === 1/2 ? '1/2' : '1'} × {delegation.daily_allowance} EUR
+                            </span>
+                          )}
+                          <span> × NBP rate</span>
+                        </>
+                      ) : (
+                        <span>
+                          {timeBreakdown.totalDays} × {delegation.daily_allowance} EUR × NBP rate
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Total */}
+                <div className="pt-2 border-t border-neutral-200">
+                  <div className="flex justify-between items-center text-lg font-semibold text-neutral-900">
+                    <span>Total:</span>
+                    <span>{tripTotal.toFixed(2)} PLN</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
