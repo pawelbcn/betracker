@@ -81,11 +81,16 @@ export function SummaryCard({ delegation, expenses }: SummaryCardProps) {
             <span>Total:</span>
             <div className="text-right">
               {Object.entries(totalExpensesByCurrency).map(([currency, amount]) => (
-                <div key={currency}>
-                  {amount.toFixed(2)} {currency}
+                <div key={currency} className="text-sm text-neutral-600">
+                  {amount.toFixed(2)} PLN ({currency} expenses)
                 </div>
               ))}
-              <div className="text-sm text-neutral-500">+ allowance = {tripTotal.toFixed(2)} PLN</div>
+              <div className="text-sm text-neutral-600">
+                Meals {totalAllowance.toFixed(2)} PLN
+              </div>
+              <div className="text-lg font-semibold text-neutral-900 pt-1">
+                = {tripTotal.toFixed(2)} PLN
+              </div>
             </div>
           </div>
         </div>
