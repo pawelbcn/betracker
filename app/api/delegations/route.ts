@@ -49,14 +49,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Valid daily allowance is required' }, { status: 400 })
     }
     
-    // Debug logging
-    console.log('Creating delegation with data:', {
-      start_time: body.start_time,
-      end_time: body.end_time,
-      start_time_type: typeof body.start_time,
-      end_time_type: typeof body.end_time
-    });
-    
     const delegation = await prisma.delegation.create({
       data: {
         title: body.title.trim(),
@@ -72,12 +64,6 @@ export async function POST(request: NextRequest) {
         notes: body.notes ? body.notes.trim() : null
       }
     })
-    
-    console.log('Created delegation:', {
-      id: delegation.id,
-      start_time: delegation.start_time,
-      end_time: delegation.end_time
-    });
     
     return NextResponse.json(delegation, { status: 201 })
   } catch (error) {

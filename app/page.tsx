@@ -40,6 +40,7 @@ export default function Home() {
   const [aiInitialData, setAiInitialData] = useState<any>(null);
   const [aiExpensesData, setAiExpensesData] = useState<any[]>([]);
   const [isClient, setIsClient] = useState(false);
+  const [selectedDelegations, setSelectedDelegations] = useState<Set<string>>(new Set());
   const router = useRouter();
 
   const fetchDelegations = async () => {
@@ -76,6 +77,79 @@ export default function Home() {
 
   const handleRowClick = (delegationId: string) => {
     router.push(`/delegations/${delegationId}`);
+  };
+
+  // Selection handlers
+  const handleSelectDelegation = (delegationId: string) => {
+    setSelectedDelegations(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(delegationId)) {
+        newSet.delete(delegationId);
+      } else {
+        newSet.add(delegationId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleSelectAll = () => {
+    if (selectedDelegations.size === delegations.length) {
+      setSelectedDelegations(new Set());
+    } else {
+      setSelectedDelegations(new Set(delegations.map(d => d.id)));
+    }
+  };
+
+  // Individual export handlers
+  const handleExportIndividualPDF = async (delegation: Delegation) => {
+    try {
+      const response = await fetch(`/api/expenses?delegationId=${delegation.id}`);
+      const expenses = await response.json();
+      exportToPDF(delegation, expenses);
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+    }
+  };
+
+  const handleExportIndividualCSV = async (delegation: Delegation) => {
+    try {
+      const response = await fetch(`/api/expenses?delegationId=${delegation.id}`);
+      const expenses = await response.json();
+      exportToCSV(delegation, expenses);
+    } catch (error) {
+      console.error('Error exporting CSV:', error);
+    }
+  };
+
+  // Bulk export handlers
+  const handleExportSelectedPDFs = async () => {
+    for (const delegationId of selectedDelegations) {
+      const delegation = delegations.find(d => d.id === delegationId);
+      if (delegation) {
+        try {
+          const response = await fetch(`/api/expenses?delegationId=${delegation.id}`);
+          const expenses = await response.json();
+          exportToPDF(delegation, expenses);
+        } catch (error) {
+          console.error(`Error exporting PDF for ${delegation.title}:`, error);
+        }
+      }
+    }
+  };
+
+  const handleExportSelectedCSVs = async () => {
+    for (const delegationId of selectedDelegations) {
+      const delegation = delegations.find(d => d.id === delegationId);
+      if (delegation) {
+        try {
+          const response = await fetch(`/api/expenses?delegationId=${delegation.id}`);
+          const expenses = await response.json();
+          exportToCSV(delegation, expenses);
+        } catch (error) {
+          console.error(`Error exporting CSV for ${delegation.title}:`, error);
+        }
+      }
+    }
   };
 
   const handleDelegationSuccess = () => {
@@ -152,23 +226,55 @@ export default function Home() {
 
         {/* Export Section */}
         <div className="card p-4">
-          <h2 className="text-lg font-semibold text-neutral-900 mb-3">Export All Business Travel</h2>
-          <p className="text-neutral-600 mb-3">Export all business travel at once for accounting purposes</p>
-          <div className="flex gap-3">
-            <button
-              onClick={exportAllToPDF}
-              className="flex items-center gap-2 px-4 py-2 bg-neutral-900 text-white hover:bg-neutral-800 transition-colors"
-            >
-              <Download className="w-4 h-4" />
-              Export All PDFs
-            </button>
-            <button
-              onClick={exportAllToCSV}
-              className="flex items-center gap-2 px-4 py-2 bg-neutral-200 text-neutral-900 hover:bg-neutral-300 transition-colors"
-            >
-              <Download className="w-4 h-4" />
-              Export All CSVs
-            </button>
+          <h2 className="text-lg font-semibold text-neutral-900 mb-3">Export Business Travel</h2>
+          <p className="text-neutral-600 mb-3">
+            {selectedDelegations.size > 0 
+              ? `Export ${selectedDelegations.size} selected business travel(s)`
+              : "Export all business travel at once for accounting purposes"
+            }
+          </p>
+          <div className="flex flex-wrap gap-3">
+            {selectedDelegations.size > 0 ? (
+              <>
+                <button
+                  onClick={handleExportSelectedPDFs}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white hover:bg-red-700 transition-colors"
+                >
+                  <Download className="w-4 h-4" />
+                  Export Selected PDFs ({selectedDelegations.size})
+                </button>
+                <button
+                  onClick={handleExportSelectedCSVs}
+                  className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white hover:bg-green-700 transition-colors"
+                >
+                  <Download className="w-4 h-4" />
+                  Export Selected CSVs ({selectedDelegations.size})
+                </button>
+                <button
+                  onClick={() => setSelectedDelegations(new Set())}
+                  className="flex items-center gap-2 px-4 py-2 bg-neutral-500 text-white hover:bg-neutral-600 transition-colors"
+                >
+                  Clear Selection
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={exportAllToPDF}
+                  className="flex items-center gap-2 px-4 py-2 bg-neutral-900 text-white hover:bg-neutral-800 transition-colors"
+                >
+                  <Download className="w-4 h-4" />
+                  Export All PDFs
+                </button>
+                <button
+                  onClick={exportAllToCSV}
+                  className="flex items-center gap-2 px-4 py-2 bg-neutral-200 text-neutral-900 hover:bg-neutral-300 transition-colors"
+                >
+                  <Download className="w-4 h-4" />
+                  Export All CSVs
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -182,6 +288,14 @@ export default function Home() {
                 <table className="w-full divide-y divide-neutral-200" style={{ minWidth: '800px' }}>
                   <thead className="bg-neutral-50">
                     <tr>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider w-12">
+                        <input
+                          type="checkbox"
+                          checked={selectedDelegations.size === delegations.length && delegations.length > 0}
+                          onChange={handleSelectAll}
+                          className="rounded border-neutral-300 text-blue-600 focus:ring-blue-500"
+                        />
+                      </th>
                       <th className="px-3 py-2 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
                         Business Travel
                       </th>
@@ -203,16 +317,32 @@ export default function Home() {
                       <th className="px-3 py-2 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
                         Total
                       </th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider w-32">
+                        Actions
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-neutral-200">
                     {Array.isArray(delegations) && delegations.map((delegation) => (
                       <tr 
                         key={delegation.id} 
-                        className="hover:bg-neutral-50 transition-colors cursor-pointer"
-                        onClick={() => handleRowClick(delegation.id)}
+                        className={`hover:bg-neutral-50 transition-colors ${selectedDelegations.has(delegation.id) ? 'bg-blue-50' : ''}`}
                       >
                         <td className="px-3 py-3 whitespace-nowrap">
+                          <input
+                            type="checkbox"
+                            checked={selectedDelegations.has(delegation.id)}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              handleSelectDelegation(delegation.id);
+                            }}
+                            className="rounded border-neutral-300 text-blue-600 focus:ring-blue-500"
+                          />
+                        </td>
+                        <td 
+                          className="px-3 py-3 whitespace-nowrap cursor-pointer"
+                          onClick={() => handleRowClick(delegation.id)}
+                        >
                           <div className="flex items-center">
                             <Plane className="w-4 h-4 text-blue-600 mr-2" />
                             <div>
@@ -225,29 +355,71 @@ export default function Home() {
                             </div>
                           </div>
                         </td>
-                        <td className="px-3 py-3 whitespace-nowrap">
+                        <td 
+                          className="px-3 py-3 whitespace-nowrap cursor-pointer"
+                          onClick={() => handleRowClick(delegation.id)}
+                        >
                           <div className="text-sm text-neutral-600">
-                  {delegation.destination_city}, {delegation.destination_country}
+                            {delegation.destination_city}, {delegation.destination_country}
                           </div>
                         </td>
-                        <td className="px-3 py-3 whitespace-nowrap">
+                        <td 
+                          className="px-3 py-3 whitespace-nowrap cursor-pointer"
+                          onClick={() => handleRowClick(delegation.id)}
+                        >
                           <div className="text-sm text-neutral-600">
                             {new Date(delegation.start_date).toLocaleDateString('en-GB')} - {new Date(delegation.end_date).toLocaleDateString('en-GB')}
                           </div>
                         </td>
-                        <td className="px-3 py-3 text-sm text-neutral-900 max-w-[200px]">
+                        <td 
+                          className="px-3 py-3 text-sm text-neutral-900 max-w-[200px] cursor-pointer"
+                          onClick={() => handleRowClick(delegation.id)}
+                        >
                           <div className="truncate" title={delegation.purpose}>
                             {delegation.purpose}
                           </div>
                         </td>
-                        <td className="px-3 py-3 whitespace-nowrap text-sm text-neutral-600">
+                        <td 
+                          className="px-3 py-3 whitespace-nowrap text-sm text-neutral-600 cursor-pointer"
+                          onClick={() => handleRowClick(delegation.id)}
+                        >
                           {calculateDailyAllowance(delegation).toFixed(2)} PLN
                         </td>
-                        <td className="px-3 py-3 whitespace-nowrap text-sm text-neutral-600">
+                        <td 
+                          className="px-3 py-3 whitespace-nowrap text-sm text-neutral-600 cursor-pointer"
+                          onClick={() => handleRowClick(delegation.id)}
+                        >
                           {calculateTotalExpensesMultiCurrency(delegation.expenses).toFixed(2)} PLN
                         </td>
-                        <td className="px-3 py-3 whitespace-nowrap text-sm font-medium text-neutral-900">
+                        <td 
+                          className="px-3 py-3 whitespace-nowrap text-sm font-medium text-neutral-900 cursor-pointer"
+                          onClick={() => handleRowClick(delegation.id)}
+                        >
                           {(calculateTotalExpensesMultiCurrency(delegation.expenses) + calculateDailyAllowance(delegation)).toFixed(2)} PLN
+                        </td>
+                        <td className="px-3 py-3 whitespace-nowrap">
+                          <div className="flex gap-1">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleExportIndividualPDF(delegation);
+                              }}
+                              className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+                              title="Export PDF"
+                            >
+                              <Download className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleExportIndividualCSV(delegation);
+                              }}
+                              className="p-1 text-green-600 hover:bg-green-50 rounded transition-colors"
+                              title="Export CSV"
+                            >
+                              <Download className="w-4 h-4" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -261,14 +433,27 @@ export default function Home() {
               {delegations.map((delegation) => (
                 <div
                   key={delegation.id}
-                  className="card p-4 cursor-pointer hover:shadow-md transition-shadow"
-                  onClick={() => handleRowClick(delegation.id)}
+                  className={`card p-4 hover:shadow-md transition-shadow ${selectedDelegations.has(delegation.id) ? 'ring-2 ring-blue-500 bg-blue-50' : ''}`}
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={selectedDelegations.has(delegation.id)}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          handleSelectDelegation(delegation.id);
+                        }}
+                        className="rounded border-neutral-300 text-blue-600 focus:ring-blue-500 mr-3"
+                      />
                       <Plane className="w-5 h-5 text-blue-600 mr-2" />
-                      <div>
-                        <h3 className="font-semibold text-neutral-900">{delegation.title}</h3>
+                      <div className="flex-1">
+                        <h3 
+                          className="font-semibold text-neutral-900 cursor-pointer"
+                          onClick={() => handleRowClick(delegation.id)}
+                        >
+                          {delegation.title}
+                        </h3>
                         <p className="text-xs text-neutral-500">{delegation.id}</p>
                       </div>
                     </div>
@@ -301,11 +486,35 @@ export default function Home() {
                         {(calculateTotalExpensesMultiCurrency(delegation.expenses) + calculateDailyAllowance(delegation)).toFixed(2)} PLN
                       </div>
                     </div>
+                    
+                    {/* Mobile Export Buttons */}
+                    <div className="flex gap-2 mt-3 pt-3 border-t border-neutral-200">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleExportIndividualPDF(delegation);
+                        }}
+                        className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors"
+                      >
+                        <Download className="w-4 h-4" />
+                        PDF
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleExportIndividualCSV(delegation);
+                        }}
+                        className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors"
+                      >
+                        <Download className="w-4 h-4" />
+                        CSV
+                      </button>
+                    </div>
                   </div>
               </div>
             ))}
-            </div>
           </div>
+      </div>
 
           {/* Delegation Form Modal */}
           <DelegationForm
