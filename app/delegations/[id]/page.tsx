@@ -11,6 +11,7 @@ import PersistentAIAssistant from '@/components/PersistentAIAssistant';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getExchangeRateForCurrency } from '@/logic/rules';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Delegation {
   id: string;
@@ -38,6 +39,7 @@ interface Expense {
 }
 
 export default function DelegationPage({ params }: { params: { id: string } }) {
+  const { t } = useLanguage();
   const [delegation, setDelegation] = useState<Delegation | null>(null);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
@@ -83,7 +85,7 @@ export default function DelegationPage({ params }: { params: { id: string } }) {
   };
 
   const handleDeleteDelegation = async () => {
-    if (confirm('Are you sure you want to delete this delegation? This action cannot be undone.')) {
+    if (confirm(t('delegation.confirm_delete'))) {
       try {
         const response = await fetch(`/api/delegations/${params.id}`, {
           method: 'DELETE',
@@ -91,11 +93,11 @@ export default function DelegationPage({ params }: { params: { id: string } }) {
         if (response.ok) {
           router.push('/'); // Redirect to dashboard
         } else {
-          alert('Failed to delete delegation');
+          alert(t('delegation.delete_failed'));
         }
       } catch (error) {
         console.error('Error deleting delegation:', error);
-        alert('Error deleting delegation');
+        alert(t('delegation.delete_error'));
       }
     }
   };
@@ -106,7 +108,7 @@ export default function DelegationPage({ params }: { params: { id: string } }) {
   };
 
   const handleDeleteExpense = async (expenseId: string) => {
-    if (confirm('Are you sure you want to delete this expense?')) {
+    if (confirm(t('delegation.confirm_delete_expense'))) {
       try {
         const response = await fetch(`/api/expenses/${expenseId}`, {
           method: 'DELETE',
@@ -114,11 +116,11 @@ export default function DelegationPage({ params }: { params: { id: string } }) {
         if (response.ok) {
           fetchDelegationData(); // Refresh the data
         } else {
-          alert('Failed to delete expense');
+          alert(t('delegation.delete_expense_failed'));
         }
       } catch (error) {
         console.error('Error deleting expense:', error);
-        alert('Error deleting expense');
+        alert(t('delegation.delete_expense_error'));
       }
     }
   };
@@ -180,7 +182,7 @@ export default function DelegationPage({ params }: { params: { id: string } }) {
     return (
       <div className="space-y-8">
         <div className="flex items-center justify-center py-12">
-          <div className="text-neutral-500">Loading delegation...</div>
+          <div className="text-neutral-500">{t('delegation.loading')}</div>
         </div>
       </div>
     );
@@ -199,7 +201,7 @@ export default function DelegationPage({ params }: { params: { id: string } }) {
           className="inline-flex items-center text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Business Travel
+          {t('delegation.back_to_travel')}
         </Link>
 
             <div className="space-y-4">
@@ -212,14 +214,14 @@ export default function DelegationPage({ params }: { params: { id: string } }) {
                         <button
                           onClick={handleEditDelegation}
                           className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition-colors"
-                          title="Edit delegation"
+                          title={t('delegation.edit_delegation')}
                         >
                           <Edit className="w-4 h-4" />
                         </button>
                         <button
                           onClick={handleDeleteDelegation}
                           className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 transition-colors"
-                          title="Delete delegation"
+                          title={t('delegation.delete_delegation')}
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -257,13 +259,13 @@ export default function DelegationPage({ params }: { params: { id: string } }) {
             <div className="lg:col-span-2 space-y-6">
           <div className="card overflow-hidden">
             <div className="px-6 py-4 border-b border-neutral-200 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-neutral-900">Expense Details</h3>
+              <h3 className="text-lg font-semibold text-neutral-900">{t('delegation.expense_details')}</h3>
               <button
                 onClick={() => setShowExpenseForm(true)}
                 className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white hover:bg-green-700 transition-colors text-sm"
               >
                 <Plus className="w-4 h-4" />
-                Add Expense
+                {t('delegation.add_expense')}
               </button>
             </div>
             {/* Desktop Table View */}
@@ -272,22 +274,22 @@ export default function DelegationPage({ params }: { params: { id: string } }) {
                 <thead className="bg-neutral-50">
                   <tr>
                     <th className="px-3 py-2 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Date
+                      {t('expense.date')}
                     </th>
                     <th className="px-3 py-2 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Category
+                      {t('expense.category')}
                     </th>
                     <th className="px-3 py-2 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Description
+                      {t('expense.description')}
                     </th>
                     <th className="px-3 py-2 text-right text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Amount
+                      {t('expense.amount')}
                     </th>
                     <th className="px-3 py-2 text-right text-xs font-medium text-neutral-500 uppercase tracking-wider">
                       PLN
                     </th>
                     <th className="px-3 py-2 text-center text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Actions
+                      {t('table.actions')}
                     </th>
                   </tr>
                 </thead>
@@ -318,14 +320,14 @@ export default function DelegationPage({ params }: { params: { id: string } }) {
                           <button
                             onClick={() => handleEditExpense(expense)}
                             className="p-1 text-blue-600 hover:text-blue-800 transition-colors"
-                            title="Edit expense"
+                            title={t('delegation.edit_expense')}
                           >
                             <Edit className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleDeleteExpense(expense.id)}
                             className="p-1 text-red-600 hover:text-red-800 transition-colors"
-                            title="Delete expense"
+                            title={t('delegation.delete_expense')}
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -357,14 +359,14 @@ export default function DelegationPage({ params }: { params: { id: string } }) {
                       <button
                         onClick={() => handleEditExpense(expense)}
                         className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition-colors"
-                        title="Edit expense"
+                        title={t('delegation.edit_expense')}
                       >
                         <Edit className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDeleteExpense(expense.id)}
                         className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 transition-colors"
-                        title="Delete expense"
+                        title={t('delegation.delete_expense')}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>

@@ -3,6 +3,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pi
 import { TrendingUp, MapPin, Calendar, Euro, CalendarDays, TrendingDown } from 'lucide-react';
 import { calculateTotalExpensesMultiCurrency, calculateDailyAllowance, getExchangeRateForCurrency, calculateTotalExpensesByCurrency } from '@/logic/rules';
 import { useEffect, useState } from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Delegation {
   id: string;
@@ -31,6 +32,7 @@ interface Expense {
 }
 
 export default function StatsPage() {
+  const { t } = useLanguage();
   const [delegations, setDelegations] = useState<Delegation[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'monthly' | 'yearly'>('monthly');
@@ -62,7 +64,7 @@ export default function StatsPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <p className="mt-4 text-gray-600">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -185,11 +187,11 @@ export default function StatsPage() {
     return (
       <div className="space-y-8">
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-neutral-900">Statistics</h1>
-          <p className="text-neutral-600">Analytics and insights for your business travel</p>
+          <h1 className="text-3xl font-bold text-neutral-900">{t('stats.title')}</h1>
+          <p className="text-neutral-600">{t('stats.subtitle')}</p>
         </div>
         <div className="flex items-center justify-center py-12">
-          <div className="text-neutral-500">Loading statistics...</div>
+          <div className="text-neutral-500">{t('common.loading')}</div>
         </div>
       </div>
     );
@@ -200,8 +202,8 @@ export default function StatsPage() {
       {/* Header */}
       <div className="space-y-4">
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-neutral-900">Statistics</h1>
-          <p className="text-neutral-600">Analytics and insights for your business travel</p>
+          <h1 className="text-3xl font-bold text-neutral-900">{t('stats.title')}</h1>
+          <p className="text-neutral-600">{t('stats.subtitle')}</p>
         </div>
         
         {/* View Mode Toggle */}
