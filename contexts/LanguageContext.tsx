@@ -19,6 +19,7 @@ const translations = {
     'nav.statistics': 'Statistics',
     'nav.settings': 'Settings',
     'nav.logout': 'Logout',
+    'nav.language': 'Language',
     
     // Main page
     'main.title': 'Business Travel',
@@ -62,6 +63,7 @@ const translations = {
     'nav.statistics': 'Statystyki',
     'nav.settings': 'Ustawienia',
     'nav.logout': 'Wyloguj',
+    'nav.language': 'Język',
     
     // Main page
     'main.title': 'Podróże Służbowe',
@@ -105,6 +107,7 @@ const translations = {
     'nav.statistics': 'Statistiken',
     'nav.settings': 'Einstellungen',
     'nav.logout': 'Abmelden',
+    'nav.language': 'Sprache',
     
     // Main page
     'main.title': 'Geschäftsreisen',
@@ -148,6 +151,7 @@ const translations = {
     'nav.statistics': 'Statistiques',
     'nav.settings': 'Paramètres',
     'nav.logout': 'Déconnexion',
+    'nav.language': 'Langue',
     
     // Main page
     'main.title': 'Voyages d\'Affaires',
