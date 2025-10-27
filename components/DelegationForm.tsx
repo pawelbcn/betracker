@@ -6,7 +6,6 @@ interface DelegationFormProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  isStaticPage?: boolean;
   delegation?: {
     id: string;
     title: string;
@@ -43,7 +42,7 @@ interface DelegationFormProps {
   }>;
 }
 
-export default function DelegationForm({ isOpen, onClose, onSuccess, isStaticPage = false, delegation, initialData, expensesData }: DelegationFormProps) {
+export default function DelegationForm({ isOpen, onClose, onSuccess, delegation, initialData, expensesData }: DelegationFormProps) {
   const [formData, setFormData] = useState({
     title: delegation?.title || initialData?.title || '',
     destination_country: delegation?.destination_country || initialData?.destination_country || '',
@@ -233,8 +232,10 @@ export default function DelegationForm({ isOpen, onClose, onSuccess, isStaticPag
 
   if (!isOpen) return null;
 
-  const formContent = (
-    <div className={isStaticPage ? "w-full" : "p-6"}>
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-neutral-900">
               {delegation ? 'Edit Business Travel' : 'Add New Business Travel'}
@@ -458,17 +459,7 @@ export default function DelegationForm({ isOpen, onClose, onSuccess, isStaticPag
               </button>
             </div>
           </form>
-    </div>
-  );
-
-  if (isStaticPage) {
-    return formContent;
-  }
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        {formContent}
+        </div>
       </div>
     </div>
   );

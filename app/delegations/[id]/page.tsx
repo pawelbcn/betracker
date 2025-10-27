@@ -44,6 +44,7 @@ export default function DelegationPage({ params }: { params: { id: string } }) {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const [showExpenseForm, setShowExpenseForm] = useState(false);
+  const [showDelegationForm, setShowDelegationForm] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const router = useRouter();
 
@@ -202,13 +203,13 @@ export default function DelegationPage({ params }: { params: { id: string } }) {
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                       <h1 className="text-2xl sm:text-3xl font-bold text-neutral-900">{delegation.title}</h1>
                       <div className="flex items-center gap-2">
-                        <Link
-                          href={`/edit-delegation/${delegation.id}`}
+                        <button
+                          onClick={() => setShowDelegationForm(true)}
                           className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition-colors"
                           title={t('delegation.edit_delegation')}
                         >
                           <Edit className="w-4 h-4" />
-                        </Link>
+                        </button>
                         <button
                           onClick={handleDeleteDelegation}
                           className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 transition-colors"
@@ -459,6 +460,26 @@ export default function DelegationPage({ params }: { params: { id: string } }) {
             expense={editingExpense}
           />
 
+          {/* Delegation Form Modal */}
+          {showDelegationForm && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+              <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <DelegationForm
+                  isOpen={showDelegationForm}
+                  onClose={() => setShowDelegationForm(false)}
+                  onSuccess={() => {
+                    setShowDelegationForm(false);
+                    fetchDelegationData();
+                  }}
+                  delegation={delegation ? {
+                    ...delegation,
+                    start_time: delegation.start_time || '09:00',
+                    end_time: delegation.end_time || '17:00'
+                  } : null}
+                />
+              </div>
+            </div>
+          )}
 
           {/* Persistent AI Assistant */}
           <PersistentAIAssistant

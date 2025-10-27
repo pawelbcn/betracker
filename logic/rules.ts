@@ -28,6 +28,7 @@ export interface Expense {
 }
 
 // Country-specific daily allowance rates as per knowledgebase v0.2 section 3.2
+// These are the standard rates in EUR - will be converted to PLN using NBP rates
 export const COUNTRY_DAILY_ALLOWANCES: Record<string, number> = {
   'Hungary': 43,
   'Germany': 49,
@@ -102,10 +103,12 @@ export const calculateTotalExpensesMultiCurrencySync = (expenses: Expense[]): nu
 };
 
 /**
- * Get exchange rate for a specific currency
+ * Get exchange rate for a specific currency (fallback for when NBP API is unavailable)
+ * This should only be used as a last resort - prefer NBP API rates
  */
 export const getExchangeRateForCurrency = (currency: string): number => {
-  const exchangeRates: Record<string, number> = {
+  // These are fallback rates - should prefer NBP API rates
+  const fallbackRates: Record<string, number> = {
     // Major European currencies
     'EUR': 4.35,  // 1 EUR = 4.35 PLN
     'GBP': 5.3,   // 1 GBP = 5.3 PLN
@@ -143,7 +146,7 @@ export const getExchangeRateForCurrency = (currency: string): number => {
     'PLN': 1.0,   // 1 PLN = 1 PLN
   };
   
-  return exchangeRates[currency] || 1.0; // Default to 1.0 if currency not found
+  return fallbackRates[currency] || 1.0; // Default to 1.0 if currency not found
 };
 
 /**
@@ -202,7 +205,84 @@ export const calculateTotalExpensesByCurrencyPLN = async (expenses: Expense[]): 
 };
 
 /**
- * Calculate daily allowance (diety) as per section 3.2
+ * Calculate daily allowance (diety) as per section 3.2 using NBP exchange rates
+ * This is the new async version that uses real-time exchange rates
+ */
+export const calculateDailyAllowanceAsync = async (delegation: Delegation): Promise<number> => {
+  // Handle legacy delegations without time fields or with invalid time values
+  const hasValidTimeFields = delegation.start_time && 
+                            delegation.end_time && 
+                            delegation.start_time !== 'null' && 
+                            delegation.end_time !== 'null' &&
+                            delegation.start_time !== 'undefined' && 
+                            delegation.end_time !== 'undefined' &&
+                            delegation.start_time.trim() !== '' &&
+                            delegation.end_time.trim() !== '';
+  
+  if (!hasValidTimeFields) {
+    // Fallback to old calculation for existing delegations
+    const days = differenceInDays(
+      new Date(delegation.end_date),
+      new Date(delegation.start_date)
+    ) + 1; // Include both start and end date
+    
+    // Use NBP rate for EUR conversion
+    try {
+      const eurRate = await getExchangeRateForDate('EUR', delegation.start_date);
+      return days * delegation.daily_allowance * eurRate;
+    } catch (error) {
+      console.warn('Failed to fetch NBP rate, using fallback:', error);
+      return days * delegation.daily_allowance * delegation.exchange_rate;
+    }
+  }
+  
+  const startDateTime = new Date(`${delegation.start_date.split('T')[0]}T${delegation.start_time}`);
+  const endDateTime = new Date(`${delegation.end_date.split('T')[0]}T${delegation.end_time}`);
+  
+  // Calculate total hours
+  const totalHours = (endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60 * 60);
+  
+  // Calculate full days
+  const fullDays = Math.floor(totalHours / 24);
+  
+  // Calculate remaining hours for partial day calculation
+  const remainingHours = totalHours - (fullDays * 24);
+  
+  // Calculate partial day rate based on Polish law
+  let partialDayRate = 0;
+  if (remainingHours > 0) {
+    if (remainingHours < 8) {
+      partialDayRate = 1/3; // Less than 8 hours = 1/3 rate
+    } else if (remainingHours <= 12) {
+      partialDayRate = 1/2; // 8-12 hours = 1/2 rate
+    } else {
+      partialDayRate = 1; // More than 12 hours = full rate
+    }
+  }
+  
+  // Calculate total allowance in EUR
+  let totalAllowance = 0;
+  
+  // Add full days
+  totalAllowance += fullDays * delegation.daily_allowance;
+  
+  // Add partial day if applicable
+  if (partialDayRate > 0) {
+    totalAllowance += partialDayRate * delegation.daily_allowance;
+  }
+  
+  // Convert to PLN using NBP rate
+  try {
+    const eurRate = await getExchangeRateForDate('EUR', delegation.start_date);
+    return totalAllowance * eurRate;
+  } catch (error) {
+    console.warn('Failed to fetch NBP rate, using fallback:', error);
+    return totalAllowance * delegation.exchange_rate;
+  }
+};
+
+/**
+ * Calculate daily allowance (diety) as per section 3.2 (synchronous fallback)
  * Handles partial days based on time spent according to Polish law:
  * - <8h → 1/3 rate
  * - 8–12h → 1/2 rate  
