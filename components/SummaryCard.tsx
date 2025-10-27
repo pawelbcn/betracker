@@ -25,12 +25,9 @@ export function SummaryCard({ delegation, expenses }: SummaryCardProps) {
         setLoading(true);
         setError(null);
         
-        // Use delegation end date as settlement date
-        const settlementDate = delegation.end_date;
-        
         const [total, byCurrency] = await Promise.all([
-          calculateTotalExpensesMultiCurrency(expenses, settlementDate),
-          calculateTotalExpensesByCurrencyPLN(expenses, settlementDate)
+          calculateTotalExpensesMultiCurrency(expenses),
+          calculateTotalExpensesByCurrencyPLN(expenses)
         ]);
         
         setTotalExpenses(total);
@@ -48,7 +45,7 @@ export function SummaryCard({ delegation, expenses }: SummaryCardProps) {
     };
 
     calculateExpenses();
-  }, [expenses, delegation.end_date]);
+  }, [expenses]);
 
   // Prepare chart data
   const chartData = expenses.reduce((acc, expense) => {
