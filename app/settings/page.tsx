@@ -12,9 +12,6 @@ export default function SettingsPage() {
   const languages = [
     { code: 'en' as const, name: t('lang.english'), flag: '🇺🇸' },
     { code: 'pl' as const, name: t('lang.polish'), flag: '🇵🇱' },
-    { code: 'de' as const, name: t('lang.german'), flag: '🇩🇪' },
-    { code: 'fr' as const, name: t('lang.french'), flag: '🇫🇷' },
-    { code: 'es' as const, name: t('lang.spanish'), flag: '🇪🇸' },
   ];
 
   const handleSave = () => {

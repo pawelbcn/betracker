@@ -82,8 +82,8 @@ export default function ExchangeRatesPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold text-neutral-900">Exchange Rates</h1>
-        <p className="text-neutral-600">Current and historical exchange rates from NBP (National Bank of Poland)</p>
+        <h1 className="text-3xl font-bold text-neutral-900">{t('exchange.title')}</h1>
+        <p className="text-neutral-600">{t('exchange.subtitle')}</p>
       </div>
 
       {/* Controls */}
@@ -93,7 +93,7 @@ export default function ExchangeRatesPage() {
             <div className="flex items-center gap-2">
               <Calendar className="w-5 h-5 text-neutral-500" />
               <label htmlFor="date" className="text-sm font-medium text-neutral-700">
-                Date:
+                {t('exchange.date')}
               </label>
               <input
                 id="date"
@@ -109,7 +109,7 @@ export default function ExchangeRatesPage() {
               <Search className="w-5 h-5 text-neutral-500" />
               <input
                 type="text"
-                placeholder="Search currencies..."
+                placeholder={t('exchange.search_placeholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="px-3 py-2 border border-neutral-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent w-64"
@@ -123,7 +123,7 @@ export default function ExchangeRatesPage() {
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 disabled:bg-blue-400 transition-colors rounded-md"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
+            {t('exchange.refresh')}
           </button>
         </div>
       </div>
@@ -141,7 +141,7 @@ export default function ExchangeRatesPage() {
           <div className="flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-blue-600" />
             <h2 className="text-lg font-semibold text-neutral-900">
-              Exchange Rates for {formatDate(selectedDate)}
+              {t('exchange.rates_for')} {formatDate(selectedDate)}
             </h2>
           </div>
         </div>
@@ -150,7 +150,7 @@ export default function ExchangeRatesPage() {
           <div className="flex items-center justify-center py-12">
             <div className="flex items-center gap-2 text-neutral-500">
               <RefreshCw className="w-5 h-5 animate-spin" />
-              Loading exchange rates...
+              {t('exchange.loading')}
             </div>
           </div>
         ) : filteredRates.length > 0 ? (
@@ -159,16 +159,16 @@ export default function ExchangeRatesPage() {
               <thead className="bg-neutral-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                    Currency
+                    {t('exchange.currency')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                    Code
+                    {t('exchange.code')}
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                    Exchange Rate (PLN)
+                    {t('exchange.rate_pln')}
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                    PLN per Unit
+                    {t('exchange.pln_per_unit')}
                   </th>
                 </tr>
               </thead>
@@ -205,7 +205,7 @@ export default function ExchangeRatesPage() {
             <div className="text-center">
               <TrendingUp className="w-12 h-12 text-neutral-400 mx-auto mb-4" />
               <p className="text-neutral-500">
-                {searchTerm ? 'No currencies found matching your search.' : 'No exchange rates available for this date.'}
+                {searchTerm ? t('exchange.no_results') : t('exchange.no_data')}
               </p>
             </div>
           </div>
@@ -217,10 +217,9 @@ export default function ExchangeRatesPage() {
         <div className="flex items-start gap-3">
           <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
           <div className="text-sm text-blue-800">
-            <p className="font-medium mb-1">Data Source: National Bank of Poland (NBP)</p>
+            <p className="font-medium mb-1">{t('exchange.data_source')}</p>
             <p>
-              Exchange rates are updated daily and represent the average exchange rates (Table A) 
-              published by the National Bank of Poland. Rates are expressed as PLN per foreign currency unit.
+              {t('exchange.data_description')}
             </p>
           </div>
         </div>
