@@ -150,7 +150,7 @@ export function SummaryCard({ delegation, expenses }: SummaryCardProps) {
       
       {/* Summary Numbers */}
       <div className="space-y-3">
-        <div className="flex justify-between items-center text-neutral-600">
+        <div className="flex justify-between items-start text-neutral-600">
           <span>Total Expenses:</span>
           <div className="text-right">
             {loading ? (
@@ -177,7 +177,7 @@ export function SummaryCard({ delegation, expenses }: SummaryCardProps) {
           </div>
         </div>
         
-        <div className="flex justify-between items-center text-neutral-600">
+        <div className="flex justify-between items-start text-neutral-600">
           <span>Meals Allowance:</span>
           <div className="text-right">
             <div className="font-semibold text-neutral-900">
@@ -218,7 +218,7 @@ export function SummaryCard({ delegation, expenses }: SummaryCardProps) {
               <div className="space-y-2">
                 {/* Show detailed breakdown with exchange rates */}
                 {Object.entries(exchangeRateDetails).map(([currency, details]) => (
-                  <div key={currency} className="flex justify-between items-center text-sm">
+                  <div key={currency} className="flex justify-between items-start text-sm">
                     <div className="text-neutral-600">
                       {details.amount.toFixed(2)} {currency}
                     </div>
@@ -238,7 +238,7 @@ export function SummaryCard({ delegation, expenses }: SummaryCardProps) {
                 
                 {/* PLN expenses */}
                 {expenses.filter(e => e.currency === 'PLN').length > 0 && (
-                  <div className="flex justify-between items-center text-sm">
+                  <div className="flex justify-between items-start text-sm">
                     <div className="text-neutral-600">
                       {expenses
                         .filter(e => e.currency === 'PLN')
@@ -260,7 +260,7 @@ export function SummaryCard({ delegation, expenses }: SummaryCardProps) {
                 )}
                 
                 {/* Meals allowance */}
-                <div className="flex justify-between items-center text-sm">
+                <div className="flex justify-between items-start text-sm">
                   <div className="text-neutral-600">Meals Allowance</div>
                   <div className="text-right">
                     <div className="font-semibold text-neutral-900">
