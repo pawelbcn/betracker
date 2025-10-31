@@ -30,17 +30,26 @@ export async function PUT(
 ) {
   try {
     const body = await request.json()
-    
+    // Safely construct start/end DateTimes using provided times when available
+    const startDateStr: string = body.start_date
+    const endDateStr: string = body.end_date
+    const startTimeStr: string = (body.start_time && typeof body.start_time === 'string' && body.start_time.trim() !== '') ? body.start_time : '09:00'
+    const endTimeStr: string = (body.end_time && typeof body.end_time === 'string' && body.end_time.trim() !== '') ? body.end_time : '17:00'
+
+    // Combine date and time into ISO-like strings to avoid using current time
+    const startIso = `${startDateStr}T${startTimeStr}`
+    const endIso = `${endDateStr}T${endTimeStr}`
+
     const delegation = await prisma.delegation.update({
       where: { id: params.id },
       data: {
         title: body.title,
         destination_country: body.destination_country,
         destination_city: body.destination_city,
-        start_date: new Date(body.start_date),
-        end_date: new Date(body.end_date),
+        start_date: new Date(startIso),
+        end_date: new Date(endIso),
         purpose: body.purpose,
-        exchange_rate: parseFloat(body.exchange_rate),
+        // exchange_rate removed; rates now come from NBP API
         daily_allowance: parseFloat(body.daily_allowance),
         notes: body.notes || null
       }
