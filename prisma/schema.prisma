@@ -13,7 +13,9 @@ model Delegation {
   destination_country String
   destination_city    String
   start_date          DateTime
+  start_time          String    @default("09:00")
   end_date            DateTime
+  end_time            String    @default("17:00")
   purpose             String
   exchange_rate       Float
   daily_allowance     Float

@@ -47,7 +47,9 @@ export async function PUT(
         destination_country: body.destination_country,
         destination_city: body.destination_city,
         start_date: new Date(startIso),
+        start_time: startTimeStr,
         end_date: new Date(endIso),
+        end_time: endTimeStr,
         purpose: body.purpose,
         // exchange_rate removed; rates now come from NBP API
         daily_allowance: parseFloat(body.daily_allowance),

@@ -44,13 +44,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Valid daily allowance is required' }, { status: 400 })
     }
     
+    // Safely construct start/end DateTimes using provided times when available
+    const startDateStr: string = body.start_date
+    const endDateStr: string = body.end_date
+    const startTimeStr: string = (body.start_time && typeof body.start_time === 'string' && body.start_time.trim() !== '') ? body.start_time : '09:00'
+    const endTimeStr: string = (body.end_time && typeof body.end_time === 'string' && body.end_time.trim() !== '') ? body.end_time : '17:00'
+
+    // Combine date and time into ISO-like strings
+    const startIso = `${startDateStr}T${startTimeStr}`
+    const endIso = `${endDateStr}T${endTimeStr}`
+
     const delegation = await prisma.delegation.create({
       data: {
         title: body.title.trim(),
         destination_country: body.destination_country,
         destination_city: body.destination_city.trim(),
-        start_date: new Date(body.start_date),
-        end_date: new Date(body.end_date),
+        start_date: new Date(startIso),
+        start_time: startTimeStr,
+        end_date: new Date(endIso),
+        end_time: endTimeStr,
         purpose: body.purpose.trim(),
         exchange_rate: 4.35, // Default fallback rate - will be replaced by NBP rates
         daily_allowance: parseFloat(body.daily_allowance),
