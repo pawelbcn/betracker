@@ -197,11 +197,11 @@ export function SummaryCard({ delegation, expenses }: SummaryCardProps) {
                       {timeBreakdown.partialDayRate === 1/3 ? '1/3' : timeBreakdown.partialDayRate === 1/2 ? '1/2' : '1'} × {delegation.daily_allowance} EUR
                     </span>
                   )}
-                  <span> × {delegation.exchange_rate} PLN</span>
+                  <span> × {allowanceRate ? allowanceRate.toFixed(4) : 'NBP rate'} PLN</span>
                 </>
               ) : (
                 <span>
-                  {timeBreakdown.totalDays} × {delegation.daily_allowance} EUR × {delegation.exchange_rate} PLN
+                  {timeBreakdown.totalDays} × {delegation.daily_allowance} EUR × {allowanceRate ? allowanceRate.toFixed(4) : 'NBP rate'} PLN
                 </span>
               )}
             </div>
