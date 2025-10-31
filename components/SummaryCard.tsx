@@ -22,6 +22,11 @@ export function SummaryCard({ delegation, expenses }: SummaryCardProps) {
   const [allowanceRateDate, setAllowanceRateDate] = useState<string | null>(null);
   const timeBreakdown = calculateDelegationTimeBreakdown(delegation);
   
+  // Calculate total allowance in EUR (before conversion to PLN)
+  const totalAllowanceEUR = timeBreakdown.hasTimeFields
+    ? timeBreakdown.fullDays * delegation.daily_allowance + (timeBreakdown.partialDayRate * delegation.daily_allowance)
+    : timeBreakdown.totalDays * delegation.daily_allowance;
+  
   useEffect(() => {
     const calculateAllowance = async () => {
       try {
@@ -180,30 +185,8 @@ export function SummaryCard({ delegation, expenses }: SummaryCardProps) {
         <div className="flex justify-between items-start text-neutral-600">
           <span>Meals Allowance:</span>
           <div className="text-right">
-            <div className="font-semibold text-neutral-900">
-              {allowanceLoading ? '...' : `${totalAllowance.toFixed(2)} PLN`}
-            </div>
-            <div className="text-xs text-neutral-500">
-              {timeBreakdown.hasTimeFields ? (
-                <>
-                  {timeBreakdown.fullDays > 0 && (
-                    <span>
-                      {timeBreakdown.fullDays} × {delegation.daily_allowance} EUR
-                      {timeBreakdown.partialDayHours > 0 && ' + '}
-                    </span>
-                  )}
-                  {timeBreakdown.partialDayHours > 0 && (
-                    <span>
-                      {timeBreakdown.partialDayRate === 1/3 ? '1/3' : timeBreakdown.partialDayRate === 1/2 ? '1/2' : '1'} × {delegation.daily_allowance} EUR
-                    </span>
-                  )}
-                  <span> × {allowanceRate ? allowanceRate.toFixed(4) : 'NBP rate'} PLN</span>
-                </>
-              ) : (
-                <span>
-                  {timeBreakdown.totalDays} × {delegation.daily_allowance} EUR × {allowanceRate ? allowanceRate.toFixed(4) : 'NBP rate'} PLN
-                </span>
-              )}
+            <div className="font-semibold text-neutral-900 text-lg">
+              {totalAllowanceEUR.toFixed(2)} EUR
             </div>
           </div>
         </div>

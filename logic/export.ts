@@ -4,6 +4,20 @@ import { Delegation, Expense, calculateTotalExpenses, calculateDailyAllowanceAsy
 export async function exportToPDF(delegation: Delegation, expenses: Expense[]): Promise<void> {
   const doc = new jsPDF();
   
+  // Format date as YYYY-MM-DD (remove time portion)
+  const formatDate = (dateString: string): string => {
+    // If dateString is already in YYYY-MM-DD format, return as is
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+      return dateString;
+    }
+    // Otherwise, format from Date object
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+  
   // Header - Professional delegation report
   doc.setFontSize(20);
   doc.text(`Delegation Report: ${delegation.title}`, 14, 20);
@@ -11,7 +25,7 @@ export async function exportToPDF(delegation: Delegation, expenses: Expense[]): 
   // Delegation details as per knowledgebase v0.2
   doc.setFontSize(12);
   doc.text(`Destination: ${delegation.destination_city}, ${delegation.destination_country}`, 14, 35);
-  doc.text(`Dates: ${delegation.start_date} – ${delegation.end_date}`, 14, 42);
+  doc.text(`Dates: ${formatDate(delegation.start_date)} – ${formatDate(delegation.end_date)}`, 14, 42);
   doc.text(`Purpose: ${delegation.purpose}`, 14, 49);
   doc.text(`Exchange Rate: 1 EUR = ${delegation.exchange_rate} PLN`, 14, 56);
   doc.text(`Daily Allowance Rate: ${delegation.daily_allowance} EUR/day`, 14, 63);
@@ -45,7 +59,7 @@ export async function exportToPDF(delegation: Delegation, expenses: Expense[]): 
     const categoryInfo = getExpenseCategoryInfo(expense.category);
     const deductible = categoryInfo?.deductible ? "Yes" : "No";
     
-    doc.text(expense.date, 14, y);
+    doc.text(formatDate(expense.date), 14, y);
     doc.text(expense.category, 40, y);
     doc.text(expense.description.substring(0, 20), 70, y);
     doc.text(`${expense.amount.toFixed(2)} ${expense.currency}`, 130, y);
@@ -85,19 +99,29 @@ export async function exportToPDF(delegation: Delegation, expenses: Expense[]): 
 }
 
 export async function exportToCSV(delegation: Delegation, expenses: Expense[]): Promise<void> {
-  const headers = ["Date", "Category", "Description", "Amount", "Currency", "PLN Value", "Deductible"];
+  // Format date as YYYY-MM-DD (remove time portion)
+  const formatDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    // If dateString is already in YYYY-MM-DD format, return as is
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+      return dateString;
+    }
+    // Otherwise, format from Date object
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const headers = ["Date", "Category", "Description", "Amount", "Currency", "PLN Value"];
   const rows = expenses.map(expense => {
-    const categoryInfo = getExpenseCategoryInfo(expense.category);
-    const deductible = categoryInfo?.deductible ? "Yes" : "No";
-    
     return [
-      expense.date,
+      formatDate(expense.date),
       expense.category,
       expense.description,
       expense.amount.toFixed(2),
       expense.currency,
-      (expense.amount * delegation.exchange_rate).toFixed(2),
-      deductible
+      (expense.amount * delegation.exchange_rate).toFixed(2)
     ];
   });
   
@@ -107,11 +131,11 @@ export async function exportToCSV(delegation: Delegation, expenses: Expense[]): 
   const tripTotal = calculateTripTotal(expenses, delegation);
   
   const summaryRows = [
-    ["", "", "", "", "", "", ""],
-    ["SUMMARY", "", "", "", "", "", ""],
-    ["Total Expenses", "", "", "", "", totalExpenses.toFixed(2), ""],
-    ["Daily Allowance", "", "", "", "", totalAllowance.toFixed(2), ""],
-    ["Trip Total", "", "", "", "", tripTotal.toFixed(2), ""]
+    ["", "", "", "", "", ""],
+    ["SUMMARY", "", "", "", "", ""],
+    ["Total Expenses", "", "", "", "", totalExpenses.toFixed(2)],
+    ["Daily Allowance", "", "", "", "", totalAllowance.toFixed(2)],
+    ["Trip Total", "", "", "", "", tripTotal.toFixed(2)]
   ];
   
   const csvContent = [
