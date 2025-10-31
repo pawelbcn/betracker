@@ -318,7 +318,13 @@ export default function DelegationPage({ params }: { params: { id: string } }) {
                       </div>
                       <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4" />
-                        <span>{new Date(delegation.start_date).toLocaleDateString()} - {new Date(delegation.end_date).toLocaleDateString()}</span>
+                        <span>
+                          {new Date(delegation.start_date).toLocaleDateString()}
+                          {delegation.start_time && delegation.start_time !== 'null' && delegation.start_time !== 'undefined' && delegation.start_time.trim() !== '' && ` ${delegation.start_time}`}
+                          {' - '}
+                          {new Date(delegation.end_date).toLocaleDateString()}
+                          {delegation.end_time && delegation.end_time !== 'null' && delegation.end_time !== 'undefined' && delegation.end_time.trim() !== '' && ` ${delegation.end_time}`}
+                        </span>
                       </div>
                     </div>
                     
