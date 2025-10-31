@@ -4,7 +4,7 @@
   "description": "Delegation Expense Tracker - Next.js Application",
   "private": true,
   "scripts": {
-    "postinstall": "prisma generate",
+    "postinstall": "prisma generate && node scripts/migrate-db.js",
     "build": "next build",
     "dev": "next dev",
     "start": "next start",
@@ -31,6 +31,7 @@
     "@types/node": "^20.11.24",
     "@types/react": "^18.2.61",
     "@types/react-dom": "^18.2.19",
+    "@vercel/speed-insights": "^1.2.0",
     "autoprefixer": "^10.4.17",
     "bcryptjs": "^3.0.2",
     "class-variance-authority": "^0.7.0",

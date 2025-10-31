@@ -313,8 +313,8 @@ export const calculateDailyAllowance = (delegation: Delegation): number => {
   // Calculate full days
   const fullDays = Math.floor(totalHours / 24);
   
-  // Calculate remaining hours for partial day
-  const remainingHours = totalHours % 24;
+  // Calculate remaining hours for partial day (use subtraction for cross-midnight accuracy)
+  const remainingHours = totalHours - (fullDays * 24);
   
   let totalAllowance = 0;
   
@@ -426,8 +426,8 @@ export const calculateDelegationTimeBreakdown = (delegation: Delegation) => {
   // Calculate full days
   const fullDays = Math.floor(totalHours / 24);
   
-  // Calculate remaining hours for partial day
-  const partialDayHours = totalHours % 24;
+  // Calculate remaining hours for partial day (use subtraction for cross-midnight accuracy)
+  const partialDayHours = totalHours - (fullDays * 24);
   
   // Determine partial day rate based on Polish law
   let partialDayRate = 0;

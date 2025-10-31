@@ -110,12 +110,33 @@ export default function PersistentAIAssistant({
         }),
       });
 
+      // Check for error responses
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        let errorMessage = 'Sorry, I encountered an error. Please try again.';
+        
+        if (response.status === 503) {
+          errorMessage = '⚠️ AI Assistant is not configured. The OPENAI_API_KEY environment variable is not set. Please contact the administrator or configure the API key to use this feature.';
+        } else if (errorData.error) {
+          errorMessage = `Error: ${errorData.error}`;
+        } else {
+          errorMessage = `Error: Server returned ${response.status} ${response.statusText}`;
+        }
+        
+        addMessage({
+          type: 'assistant',
+          content: errorMessage
+        });
+        setIsLoading(false);
+        return;
+      }
+
       const aiResponse: AIResponse = await response.json();
 
       // Add AI response message
       addMessage({
         type: 'assistant',
-        content: aiResponse.response_message
+        content: aiResponse.response_message || 'I received your message, but there was no response content.'
       });
 
       // Handle the AI response based on action

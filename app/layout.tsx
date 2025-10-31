@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import Layout from "@/components/Layout";
 import AuthWrapper from "@/components/AuthWrapper";
 import { ConversationProvider } from "@/contexts/ConversationContext";
@@ -28,6 +29,7 @@ export default function RootLayout({
             </ConversationProvider>
           </AuthWrapper>
         </LanguageProvider>
+        <SpeedInsights />
       </body>
     </html>
   );
