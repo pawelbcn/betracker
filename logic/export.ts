@@ -1,10 +1,11 @@
 import { jsPDF } from "jspdf";
-import { Delegation, Expense, calculateTotalExpenses, calculateDailyAllowanceAsync, calculateTripTotal, getExpenseCategoryInfo } from "./rules";
+import { Delegation, Expense, calculateTotalExpensesMultiCurrency, calculateDailyAllowanceAsync, getExpenseCategoryInfo } from "./rules";
+import { getExchangeRateForDate } from "./exchangeRates";
 
 export async function exportToPDF(delegation: Delegation, expenses: Expense[]): Promise<void> {
   const doc = new jsPDF();
   
-  // Format date as YYYY-MM-DD (remove time portion)
+  // Format date as YYYY-MM-DD (remove time portion for expense dates)
   const formatDate = (dateString: string): string => {
     // If dateString is already in YYYY-MM-DD format, return as is
     if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
@@ -18,6 +19,15 @@ export async function exportToPDF(delegation: Delegation, expenses: Expense[]): 
     return `${year}-${month}-${day}`;
   };
   
+  // Format date with time for delegation dates
+  const formatDateWithTime = (date: string, time?: string): string => {
+    const formattedDate = formatDate(date);
+    if (time && time !== 'null' && time !== 'undefined' && time.trim() !== '') {
+      return `${formattedDate} ${time}`;
+    }
+    return formattedDate;
+  };
+  
   // Header - Professional delegation report
   doc.setFontSize(20);
   doc.text(`Delegation Report: ${delegation.title}`, 14, 20);
@@ -25,8 +35,11 @@ export async function exportToPDF(delegation: Delegation, expenses: Expense[]): 
   // Delegation details as per knowledgebase v0.2
   doc.setFontSize(12);
   doc.text(`Destination: ${delegation.destination_city}, ${delegation.destination_country}`, 14, 35);
-  doc.text(`Dates: ${formatDate(delegation.start_date)} – ${formatDate(delegation.end_date)}`, 14, 42);
-  doc.text(`Purpose: ${delegation.purpose}`, 14, 49);
+  doc.text(`Dates: ${formatDateWithTime(delegation.start_date, delegation.start_time)} – ${formatDateWithTime(delegation.end_date, delegation.end_time)}`, 14, 42);
+  
+  // Purpose text - handle UTF-8 encoding properly
+  doc.text(`Purpose: ${delegation.purpose}`, 14, 49, { maxWidth: 180 });
+  
   doc.text(`Exchange Rate: 1 EUR = ${delegation.exchange_rate} PLN`, 14, 56);
   doc.text(`Daily Allowance Rate: ${delegation.daily_allowance} EUR/day`, 14, 63);
   
@@ -40,40 +53,54 @@ export async function exportToPDF(delegation: Delegation, expenses: Expense[]): 
   doc.text("Expenses (as per Polish delegation law):", 14, y);
   y += 10;
   
-  // Table headers
+  // Table headers (removed Deductible column)
   doc.setFontSize(10);
   doc.text("Date", 14, y);
   doc.text("Category", 40, y);
   doc.text("Description", 70, y);
   doc.text("Amount", 130, y);
   doc.text("PLN Value", 160, y);
-  doc.text("Deductible", 180, y);
   y += 8;
   
   // Draw line under headers
   doc.line(14, y, 200, y);
   y += 5;
   
-  // Expense rows with deductibility info
-  expenses.forEach((expense) => {
-    const categoryInfo = getExpenseCategoryInfo(expense.category);
-    const deductible = categoryInfo?.deductible ? "Yes" : "No";
+  // Calculate exchange rates for each expense
+  const expenseRates = await Promise.all(
+    expenses.map(async (expense) => {
+      if (expense.currency === 'PLN') {
+        return { rate: 1, convertedAmount: expense.amount };
+      }
+      try {
+        const expenseDate = formatDate(expense.date);
+        const rate = await getExchangeRateForDate(expense.currency, expenseDate);
+        return { rate, convertedAmount: expense.amount * rate };
+      } catch (error) {
+        // Fallback to delegation exchange rate
+        return { rate: delegation.exchange_rate, convertedAmount: expense.amount * delegation.exchange_rate };
+      }
+    })
+  );
+  
+  // Expense rows
+  expenses.forEach((expense, index) => {
+    const { convertedAmount } = expenseRates[index];
     
     doc.text(formatDate(expense.date), 14, y);
     doc.text(expense.category, 40, y);
     doc.text(expense.description.substring(0, 20), 70, y);
     doc.text(`${expense.amount.toFixed(2)} ${expense.currency}`, 130, y);
-    doc.text(`${(expense.amount * delegation.exchange_rate).toFixed(2)} PLN`, 160, y);
-    doc.text(deductible, 180, y);
+    doc.text(`${convertedAmount.toFixed(2)} PLN`, 160, y);
     y += 7;
   });
   
-  // Summary calculations as per knowledgebase v0.2 section 5
+  // Summary calculations using NBP rates (matching SummaryCard)
   y += 10;
   doc.setFontSize(12);
-  const totalExpenses = calculateTotalExpenses(expenses, delegation.exchange_rate);
+  const totalExpenses = await calculateTotalExpensesMultiCurrency(expenses);
   const totalAllowance = await calculateDailyAllowanceAsync(delegation);
-  const tripTotal = calculateTripTotal(expenses, delegation);
+  const tripTotal = totalExpenses + totalAllowance;
   
   doc.text(`Total Expenses: ${totalExpenses.toFixed(2)} PLN`, 14, y);
   y += 8;
