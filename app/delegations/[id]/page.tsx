@@ -1,7 +1,7 @@
 "use client";
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, MapPin, Calendar, Utensils, Plus, Edit, Trash2 } from 'lucide-react';
+import { ArrowLeft, MapPin, Calendar, Utensils, Plus, Edit, Trash2, FileText, Download } from 'lucide-react';
 import { ExpenseTable } from '@/components/ExpenseTable';
 import { SummaryCard } from '@/components/SummaryCard';
 import ExportMenu from '@/components/ExportMenu';
@@ -37,6 +37,7 @@ interface Expense {
   amount: number;
   currency: string;
   description: string;
+  receipt_url?: string | null;
 }
 
 // Component for individual expense row with async rate fetching
@@ -110,6 +111,17 @@ function ExpenseRow({ expense, onEdit, onDelete }: {
       </td>
       <td className="px-3 py-3 whitespace-nowrap text-sm text-neutral-600">
         <div className="flex items-center justify-center gap-1">
+          {expense.receipt_url && (
+            <a
+              href={expense.receipt_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-1 text-green-600 hover:text-green-800 transition-colors"
+              title="View receipt"
+            >
+              <Download className="w-4 h-4" />
+            </a>
+          )}
           <button
             onClick={() => onEdit(expense)}
             className="p-1 text-blue-600 hover:text-blue-800 transition-colors"
@@ -355,7 +367,7 @@ export default function DelegationPage({ params }: { params: { id: string } }) {
                           {timeBreakdown.hasTimeFields ? (
                             <>
                               <span className="font-semibold">
-                                {Math.floor(timeBreakdown.totalHours)}h {Math.round((timeBreakdown.totalHours % 1) * 60)}m
+                                {Math.floor(timeBreakdown.totalHours)}h {Math.round((timeBreakdown.totalHours % 1) * 60)}m ({timeBreakdown.totalDays.toFixed(2)} days)
                               </span>
                               <span className="text-blue-600">•</span>
                               <span>
@@ -366,10 +378,6 @@ export default function DelegationPage({ params }: { params: { id: string } }) {
                                     ({timeBreakdown.partialDayRate === 1/3 ? '1/3' : timeBreakdown.partialDayRate === 1/2 ? '1/2' : 'full'} day)
                                   </span>
                                 )}
-                              </span>
-                              <span className="text-blue-600">•</span>
-                              <span className="font-semibold">
-                                Total: {timeBreakdown.totalDays.toFixed(2)} day{timeBreakdown.totalDays !== 1 ? 's' : ''}
                               </span>
                             </>
                           ) : (
@@ -468,6 +476,17 @@ export default function DelegationPage({ params }: { params: { id: string } }) {
                       <h4 className="font-medium text-neutral-900 mb-1">{expense.description}</h4>
                     </div>
                     <div className="flex items-center gap-2">
+                      {expense.receipt_url && (
+                        <a
+                          href={expense.receipt_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 transition-colors"
+                          title="View receipt"
+                        >
+                          <Download className="w-4 h-4" />
+                        </a>
+                      )}
                       <button
                         onClick={() => handleEditExpense(expense)}
                         className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition-colors"

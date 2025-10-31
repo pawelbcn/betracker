@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { X, Save, TrendingUp, Calculator } from 'lucide-react';
+import { X, Save, TrendingUp, Calculator, Upload, FileText, Download } from 'lucide-react';
 import { getExchangeRateForDate } from '@/logic/exchangeRates';
 
 interface ExpenseFormProps {
@@ -15,6 +15,7 @@ interface ExpenseFormProps {
     amount: number;
     currency: string;
     description: string;
+    receipt_url?: string | null;
   } | null;
 }
 
@@ -24,13 +25,16 @@ export default function ExpenseForm({ isOpen, onClose, onSuccess, delegationId, 
     category: expense?.category || '',
     amount: expense?.amount || 0,
     currency: expense?.currency || 'EUR',
-    description: expense?.description || ''
+    description: expense?.description || '',
+    receipt_url: expense?.receipt_url || null
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [exchangeRate, setExchangeRate] = useState<number | null>(null);
   const [rateLoading, setRateLoading] = useState(false);
   const [rateError, setRateError] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadingReceipt, setUploadingReceipt] = useState(false);
 
   // Update form data when expense prop changes
   useEffect(() => {
@@ -40,8 +44,10 @@ export default function ExpenseForm({ isOpen, onClose, onSuccess, delegationId, 
         category: expense.category || '',
         amount: expense.amount || 0,
         currency: expense.currency || 'EUR',
-        description: expense.description || ''
+        description: expense.description || '',
+        receipt_url: expense.receipt_url || null
       });
+      setSelectedFile(null);
     } else {
       // Reset form for new expense
       setFormData({
@@ -49,8 +55,10 @@ export default function ExpenseForm({ isOpen, onClose, onSuccess, delegationId, 
         category: '',
         amount: 0,
         currency: 'EUR',
-        description: ''
+        description: '',
+        receipt_url: null
       });
+      setSelectedFile(null);
     }
   }, [expense]);
 
@@ -80,6 +88,28 @@ export default function ExpenseForm({ isOpen, onClose, onSuccess, delegationId, 
 
     fetchExchangeRate();
   }, [formData.currency, formData.date]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
+      if (!allowedTypes.includes(file.type)) {
+        setError('Invalid file type. Only images and PDFs are allowed.');
+        return;
+      }
+      
+      // Validate file size (max 10MB)
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      if (file.size > maxSize) {
+        setError('File size exceeds 10MB limit.');
+        return;
+      }
+      
+      setSelectedFile(file);
+      setError(null);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,6 +144,32 @@ export default function ExpenseForm({ isOpen, onClose, onSuccess, delegationId, 
     }
 
     try {
+      let receiptUrl = formData.receipt_url;
+
+      // Upload receipt if a new file is selected
+      if (selectedFile) {
+        setUploadingReceipt(true);
+        const uploadFormData = new FormData();
+        uploadFormData.append('file', selectedFile);
+
+        const uploadResponse = await fetch('/api/upload-receipt', {
+          method: 'POST',
+          body: uploadFormData,
+        });
+
+        if (!uploadResponse.ok) {
+          const errorData = await uploadResponse.json();
+          setError(errorData.error || 'Failed to upload receipt');
+          setLoading(false);
+          setUploadingReceipt(false);
+          return;
+        }
+
+        const uploadData = await uploadResponse.json();
+        receiptUrl = uploadData.url;
+        setUploadingReceipt(false);
+      }
+
       const url = expense ? `/api/expenses/${expense.id}` : '/api/expenses';
       const method = expense ? 'PUT' : 'POST';
 
@@ -124,6 +180,7 @@ export default function ExpenseForm({ isOpen, onClose, onSuccess, delegationId, 
         },
         body: JSON.stringify({
           ...formData,
+          receipt_url: receiptUrl,
           delegation_id: delegationId
         }),
       });
@@ -137,8 +194,10 @@ export default function ExpenseForm({ isOpen, onClose, onSuccess, delegationId, 
           category: '',
           amount: 0,
           currency: 'EUR',
-          description: ''
+          description: '',
+          receipt_url: null
         });
+        setSelectedFile(null);
       } else {
         const errorData = await response.json();
         setError(errorData.error || 'Failed to save expense');
@@ -148,6 +207,7 @@ export default function ExpenseForm({ isOpen, onClose, onSuccess, delegationId, 
       setError('Network error. Please try again.');
     } finally {
       setLoading(false);
+      setUploadingReceipt(false);
     }
   };
 
@@ -337,6 +397,47 @@ export default function ExpenseForm({ isOpen, onClose, onSuccess, delegationId, 
               />
             </div>
 
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-2">
+                Receipt (Optional)
+              </label>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <label className="flex items-center gap-2 px-4 py-2 border border-neutral-300 rounded cursor-pointer hover:bg-neutral-50 transition-colors">
+                    <Upload className="w-4 h-4" />
+                    <span className="text-sm">Choose File</span>
+                    <input
+                      type="file"
+                      accept="image/*,.pdf"
+                      onChange={handleFileChange}
+                      className="hidden"
+                    />
+                  </label>
+                  {selectedFile && (
+                    <span className="text-sm text-neutral-600">{selectedFile.name}</span>
+                  )}
+                </div>
+                {formData.receipt_url && !selectedFile && (
+                  <div className="flex items-center gap-2 p-2 bg-neutral-50 border border-neutral-200 rounded">
+                    <FileText className="w-4 h-4 text-neutral-600" />
+                    <span className="text-sm text-neutral-600">Current receipt:</span>
+                    <a
+                      href={formData.receipt_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800"
+                    >
+                      <Download className="w-3 h-3" />
+                      View Receipt
+                    </a>
+                  </div>
+                )}
+                <p className="text-xs text-neutral-500">
+                  Supported formats: JPG, PNG, GIF, WebP, PDF (Max 10MB)
+                </p>
+              </div>
+            </div>
+
             <div className="flex justify-end gap-3 pt-4">
               <button
                 type="button"
@@ -347,11 +448,11 @@ export default function ExpenseForm({ isOpen, onClose, onSuccess, delegationId, 
               </button>
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || uploadingReceipt}
                 className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
               >
                 <Save className="w-4 h-4" />
-                {loading ? 'Saving...' : (expense ? 'Update' : 'Add')}
+                {uploadingReceipt ? 'Uploading...' : loading ? 'Saving...' : (expense ? 'Update' : 'Add')}
               </button>
             </div>
           </form>

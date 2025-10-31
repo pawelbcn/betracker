@@ -35,6 +35,7 @@ model Expense {
   amount        Float
   currency      String
   description   String
+  receipt_url   String?
   created_at    DateTime   @default(now())
   updated_at    DateTime   @updatedAt
   delegation    Delegation @relation(fields: [delegation_id], references: [id], onDelete: Cascade)
