@@ -140,22 +140,39 @@ export async function exportToCSV(delegation: Delegation, expenses: Expense[]): 
     return `${year}-${month}-${day}`;
   };
 
+  // Calculate exchange rates for each expense
+  const expenseRates = await Promise.all(
+    expenses.map(async (expense) => {
+      if (expense.currency === 'PLN') {
+        return { convertedAmount: expense.amount };
+      }
+      try {
+        const expenseDate = formatDate(expense.date);
+        const rate = await getExchangeRateForDate(expense.currency, expenseDate);
+        return { convertedAmount: expense.amount * rate };
+      } catch (error) {
+        // Fallback to delegation exchange rate
+        return { convertedAmount: expense.amount * delegation.exchange_rate };
+      }
+    })
+  );
+
   const headers = ["Date", "Category", "Description", "Amount", "Currency", "PLN Value"];
-  const rows = expenses.map(expense => {
+  const rows = expenses.map((expense, index) => {
     return [
       formatDate(expense.date),
       expense.category,
       expense.description,
       expense.amount.toFixed(2),
       expense.currency,
-      (expense.amount * delegation.exchange_rate).toFixed(2)
+      expenseRates[index].convertedAmount.toFixed(2)
     ];
   });
   
-  // Add summary row
-  const totalExpenses = calculateTotalExpenses(expenses, delegation.exchange_rate);
+  // Add summary row (using NBP rates matching SummaryCard)
+  const totalExpenses = await calculateTotalExpensesMultiCurrency(expenses);
   const totalAllowance = await calculateDailyAllowanceAsync(delegation);
-  const tripTotal = calculateTripTotal(expenses, delegation);
+  const tripTotal = totalExpenses + totalAllowance;
   
   const summaryRows = [
     ["", "", "", "", "", ""],
