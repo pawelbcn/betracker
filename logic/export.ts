@@ -175,7 +175,7 @@ export async function exportToCSV(delegation: Delegation, expenses: Expense[]): 
     })
   );
 
-  const headers = ["Date", "Category", "Description", "Amount", "Currency", "Exchange Rate", "Rate Date", "PLN Value"];
+  const headers = ["Data", "Kategoria", "Opis", "Kwota", "Waluta", "Kurs wymiany", "Data kursu", "Wartość w PLN"];
   const rows = expenses.map((expense, index) => {
     const { rate, rateDate, convertedAmount } = expenseRates[index];
     return [
@@ -212,11 +212,11 @@ export async function exportToCSV(delegation: Delegation, expenses: Expense[]): 
   // Build daily allowance breakdown rows
   const summaryRows: string[][] = [
     ["", "", "", "", "", "", "", ""],
-    ["SUMMARY", "", "", "", "", "", "", ""],
-    ["Total Expenses", "", "", "", "", "", "", totalExpenses.toFixed(2)]
+    ["PODSUMOWANIE", "", "", "", "", "", "", ""],
+    ["Całkowite koszty", "", "", "", "", "", "", totalExpenses.toFixed(2)]
   ];
   
-  // Add Daily Allowance with breakdown
+  // Add Daily Allowance with breakdown - all in first column (Category)
   if (timeBreakdown.hasTimeFields) {
     const fullDays = timeBreakdown.fullDays;
     const partialRate = timeBreakdown.partialDayRate;
@@ -231,28 +231,28 @@ export async function exportToCSV(delegation: Delegation, expenses: Expense[]): 
       calculationText += `${partialLabel} × ${delegation.daily_allowance} EUR`;
     }
     if (fullDays === 0 && partialRate === 0) {
-      calculationText = "0 days";
+      calculationText = "0 dni";
     }
     calculationText += ` × ${eurRate.toFixed(4)} PLN/EUR`;
     
     summaryRows.push(
-      ["Daily Allowance", "", "", "", "", "", "", totalAllowance.toFixed(2)],
-      ["  Calculation", calculationText, "", "", "", "", "", ""],
-      ["  Rate Date", eurRateDate, "(last working day before", allowanceDate, ")", "", "", ""],
+      ["Dieta (diety)", "", "", "", "", "", "", totalAllowance.toFixed(2)],
+      [`  Obliczenie: ${calculationText}`, "", "", "", "", "", "", ""],
+      [`  Data kursu: ${eurRateDate} (ostatni dzień roboczy przed ${allowanceDate})`, "", "", "", "", "", "", ""],
       ["", "", "", "", "", "", "", ""]
     );
   } else {
     const days = timeBreakdown.totalDays;
     summaryRows.push(
-      ["Daily Allowance", "", "", "", "", "", "", totalAllowance.toFixed(2)],
-      ["  Calculation", `${days} days × ${delegation.daily_allowance} EUR × ${eurRate.toFixed(4)} PLN/EUR`, "", "", "", "", "", ""],
-      ["  Rate Date", eurRateDate, "(last working day before", allowanceDate, ")", "", "", ""],
+      ["Dieta (diety)", "", "", "", "", "", "", totalAllowance.toFixed(2)],
+      [`  Obliczenie: ${days} dni × ${delegation.daily_allowance} EUR × ${eurRate.toFixed(4)} PLN/EUR`, "", "", "", "", "", "", ""],
+      [`  Data kursu: ${eurRateDate} (ostatni dzień roboczy przed ${allowanceDate})`, "", "", "", "", "", "", ""],
       ["", "", "", "", "", "", "", ""]
     );
   }
   
   summaryRows.push(
-    ["Trip Total", "", "", "", "", "", "", tripTotal.toFixed(2)]
+    ["Całkowity koszt podróży", "", "", "", "", "", "", tripTotal.toFixed(2)]
   );
   
   const csvContent = [
