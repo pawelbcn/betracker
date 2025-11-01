@@ -49,19 +49,22 @@ export function ReceiptViewer({ url, filename, className = "", children }: Recei
   return (
     <>
       {children ? (
-        <span onClick={handleClick} className={className} style={{ cursor: 'pointer' }}>
+        <span 
+          onClick={handleClick} 
+          className={className} 
+          style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }}
+        >
           {children}
         </span>
       ) : (
-        <a
-          href={url}
+        <span
           onClick={handleClick}
-          target={isDataUrl ? undefined : "_blank"}
-          rel="noopener noreferrer"
           className={className}
+          style={{ cursor: 'pointer', display: 'inline-block' }}
+          title="View receipt"
         >
           <Download className="w-4 h-4" />
-        </a>
+        </span>
       )}
 
       {/* Modal for data URLs */}
