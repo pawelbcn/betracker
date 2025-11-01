@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { put } from '@vercel/blob';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import { existsSync, mkdirSync } from 'fs';
@@ -25,38 +26,46 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate unique filename
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
     const timestamp = Date.now();
     const randomString = Math.random().toString(36).substring(2, 15);
     const extension = file.name.split('.').pop();
     const filename = `receipt_${timestamp}_${randomString}.${extension}`;
 
-    // Vercel serverless functions have read-only filesystem except /tmp
-    // For production, we should use cloud storage, but for now use /tmp and return base64 or store URL differently
+    // Check if we're on Vercel (use Blob Storage) or local (use filesystem)
     const isVercel = process.env.VERCEL === '1';
     
     if (isVercel) {
-      // On Vercel, use /tmp directory (only writable location)
-      const tmpDir = '/tmp';
-      const filepath = join(tmpDir, filename);
-      await writeFile(filepath, buffer);
-      
-      // Return a data URL or note that file is in tmp (temporary)
-      // For production, this should use Vercel Blob Storage
-      console.warn('File saved to /tmp - this is temporary storage on Vercel. Consider using Vercel Blob Storage for production.');
-      
-      // For now, convert to base64 data URL as a workaround
-      const base64 = buffer.toString('base64');
-      const dataUrl = `data:${file.type};base64,${base64}`;
-      
-      return NextResponse.json({ 
-        url: dataUrl,
-        warning: 'File stored temporarily. For production, use cloud storage.',
-        filename: filename
-      }, { status: 200 });
+      // Use Vercel Blob Storage for production
+      try {
+        const blob = await put(`receipts/${filename}`, file, {
+          access: 'public',
+          contentType: file.type,
+        });
+        
+        return NextResponse.json({ 
+          url: blob.url,
+          filename: filename
+        }, { status: 200 });
+      } catch (blobError: any) {
+        console.error('Vercel Blob upload error:', blobError);
+        // Fallback to base64 if Blob Storage fails (e.g., no BLOB_READ_WRITE_TOKEN set)
+        const bytes = await file.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+        const base64 = buffer.toString('base64');
+        const dataUrl = `data:${file.type};base64,${base64}`;
+        
+        console.warn('Falling back to base64 - set BLOB_READ_WRITE_TOKEN in Vercel for proper storage');
+        return NextResponse.json({ 
+          url: dataUrl,
+          warning: 'Using base64 encoding. Set BLOB_READ_WRITE_TOKEN in Vercel for cloud storage.',
+          filename: filename
+        }, { status: 200 });
+      }
     } else {
       // Local development - use public folder
+      const bytes = await file.arrayBuffer();
+      const buffer = Buffer.from(bytes);
+      
       const uploadsDir = join(process.cwd(), 'public', 'uploads', 'receipts');
       if (!existsSync(uploadsDir)) {
         mkdirSync(uploadsDir, { recursive: true });
