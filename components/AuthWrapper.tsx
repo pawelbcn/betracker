@@ -15,7 +15,7 @@ export default function AuthWrapper({ children }: AuthWrapperProps) {
 
   useEffect(() => {
     // Skip authentication check for public pages
-    const publicPages = ['/landing', '/login', '/register'];
+    const publicPages = ['/landing', '/login', '/register', '/migrate-receipt'];
     if (publicPages.includes(pathname)) {
       setIsAuthenticated(true);
       setIsLoading(false);

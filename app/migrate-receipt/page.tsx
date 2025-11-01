@@ -1,6 +1,8 @@
 "use client";
 import { useState } from 'react';
 
+// This page doesn't use Layout to avoid navigation/header
+
 export default function MigrateReceiptPage() {
   const [status, setStatus] = useState<'idle' | 'checking' | 'migrating' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState<string>('');
