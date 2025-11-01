@@ -3,31 +3,32 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET() {
   try {
+    // Fetch delegations without expenses first to avoid schema mismatch issues
     const delegations = await prisma.delegation.findMany({
-      include: {
-        expenses: {
-          select: {
-            id: true,
-            delegation_id: true,
-            date: true,
-            category: true,
-            amount: true,
-            currency: true,
-            description: true,
-            receipt_url: true,
-            created_at: true,
-            updated_at: true
-          }
-        }
-      },
       orderBy: {
         start_date: 'desc'
       }
     })
     
-    return NextResponse.json(delegations)
+    // Fetch expenses separately to handle potential receipt_url column issue gracefully
+    const expenses = await prisma.expense.findMany({
+      where: {
+        delegation_id: {
+          in: delegations.map(d => d.id)
+        }
+      }
+    })
+    
+    // Attach expenses to delegations
+    const delegationsWithExpenses = delegations.map(delegation => ({
+      ...delegation,
+      expenses: expenses.filter(e => e.delegation_id === delegation.id)
+    }))
+    
+    return NextResponse.json(delegationsWithExpenses)
   } catch (error) {
     console.error('Error fetching delegations:', error)
+    console.error('Error details:', JSON.stringify(error, null, 2))
     // Return empty array instead of error to prevent frontend crashes
     return NextResponse.json([], { status: 200 })
   }
