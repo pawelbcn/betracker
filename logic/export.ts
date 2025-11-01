@@ -1,6 +1,6 @@
 import { jsPDF } from "jspdf";
 import { Delegation, Expense, calculateTotalExpensesMultiCurrency, calculateDailyAllowanceAsync, getExpenseCategoryInfo } from "./rules";
-import { getExchangeRateForDate } from "./exchangeRates";
+import { getExchangeRateForDate, getLastWorkingDay } from "./exchangeRates";
 
 export async function exportToPDF(delegation: Delegation, expenses: Expense[]): Promise<void> {
   const doc = new jsPDF();
@@ -53,45 +53,60 @@ export async function exportToPDF(delegation: Delegation, expenses: Expense[]): 
   doc.text("Expenses (as per Polish delegation law):", 14, y);
   y += 10;
   
-  // Table headers (removed Deductible column)
+  // Table headers (removed Deductible column, added exchange rate columns)
   doc.setFontSize(10);
   doc.text("Date", 14, y);
   doc.text("Category", 40, y);
   doc.text("Description", 70, y);
-  doc.text("Amount", 130, y);
-  doc.text("PLN Value", 160, y);
+  doc.text("Amount", 115, y);
+  doc.text("Rate", 150, y);
+  doc.text("Rate Date", 165, y);
+  doc.text("PLN Value", 195, y);
   y += 8;
   
   // Draw line under headers
   doc.line(14, y, 200, y);
   y += 5;
   
-  // Calculate exchange rates for each expense
+  // Calculate exchange rates for each expense with rate dates
   const expenseRates = await Promise.all(
     expenses.map(async (expense) => {
       if (expense.currency === 'PLN') {
-        return { rate: 1, convertedAmount: expense.amount };
+        return { rate: 1, rateDate: null, convertedAmount: expense.amount };
       }
       try {
         const expenseDate = formatDate(expense.date);
+        const expenseDateObj = new Date(expenseDate);
+        const lastWorkingDay = getLastWorkingDay(expenseDateObj);
+        const rateDate = formatDate(lastWorkingDay.toISOString());
         const rate = await getExchangeRateForDate(expense.currency, expenseDate);
-        return { rate, convertedAmount: expense.amount * rate };
+        return { rate, rateDate, convertedAmount: expense.amount * rate };
       } catch (error) {
         // Fallback to delegation exchange rate
-        return { rate: delegation.exchange_rate, convertedAmount: expense.amount * delegation.exchange_rate };
+        return { rate: delegation.exchange_rate, rateDate: null, convertedAmount: expense.amount * delegation.exchange_rate };
       }
     })
   );
   
   // Expense rows
   expenses.forEach((expense, index) => {
-    const { convertedAmount } = expenseRates[index];
+    const { rate, rateDate, convertedAmount } = expenseRates[index];
     
     doc.text(formatDate(expense.date), 14, y);
     doc.text(expense.category, 40, y);
-    doc.text(expense.description.substring(0, 20), 70, y);
-    doc.text(`${expense.amount.toFixed(2)} ${expense.currency}`, 130, y);
-    doc.text(`${convertedAmount.toFixed(2)} PLN`, 160, y);
+    doc.text(expense.description.substring(0, 15), 70, y); // Slightly shorter to fit new columns
+    doc.text(`${expense.amount.toFixed(2)} ${expense.currency}`, 115, y);
+    
+    // Exchange rate info (only for non-PLN expenses)
+    if (expense.currency !== 'PLN' && rate && rateDate) {
+      doc.text(rate.toFixed(4), 150, y);
+      doc.text(formatDate(rateDate), 165, y);
+    } else {
+      doc.text("-", 150, y); // No rate for PLN
+      doc.text("-", 165, y);
+    }
+    
+    doc.text(`${convertedAmount.toFixed(2)} PLN`, 195, y);
     y += 7;
   });
   
@@ -140,32 +155,38 @@ export async function exportToCSV(delegation: Delegation, expenses: Expense[]): 
     return `${year}-${month}-${day}`;
   };
 
-  // Calculate exchange rates for each expense
+  // Calculate exchange rates for each expense with rate dates
   const expenseRates = await Promise.all(
     expenses.map(async (expense) => {
       if (expense.currency === 'PLN') {
-        return { convertedAmount: expense.amount };
+        return { rate: 1, rateDate: null, convertedAmount: expense.amount };
       }
       try {
         const expenseDate = formatDate(expense.date);
+        const expenseDateObj = new Date(expenseDate);
+        const lastWorkingDay = getLastWorkingDay(expenseDateObj);
+        const rateDate = formatDate(lastWorkingDay.toISOString());
         const rate = await getExchangeRateForDate(expense.currency, expenseDate);
-        return { convertedAmount: expense.amount * rate };
+        return { rate, rateDate, convertedAmount: expense.amount * rate };
       } catch (error) {
         // Fallback to delegation exchange rate
-        return { convertedAmount: expense.amount * delegation.exchange_rate };
+        return { rate: delegation.exchange_rate, rateDate: null, convertedAmount: expense.amount * delegation.exchange_rate };
       }
     })
   );
 
-  const headers = ["Date", "Category", "Description", "Amount", "Currency", "PLN Value"];
+  const headers = ["Date", "Category", "Description", "Amount", "Currency", "Exchange Rate", "Rate Date", "PLN Value"];
   const rows = expenses.map((expense, index) => {
+    const { rate, rateDate, convertedAmount } = expenseRates[index];
     return [
       formatDate(expense.date),
       expense.category,
       expense.description,
       expense.amount.toFixed(2),
       expense.currency,
-      expenseRates[index].convertedAmount.toFixed(2)
+      expense.currency !== 'PLN' && rate ? rate.toFixed(4) : "-",
+      expense.currency !== 'PLN' && rateDate ? formatDate(rateDate) : "-",
+      convertedAmount.toFixed(2)
     ];
   });
   
@@ -175,11 +196,11 @@ export async function exportToCSV(delegation: Delegation, expenses: Expense[]): 
   const tripTotal = totalExpenses + totalAllowance;
   
   const summaryRows = [
-    ["", "", "", "", "", ""],
-    ["SUMMARY", "", "", "", "", ""],
-    ["Total Expenses", "", "", "", "", totalExpenses.toFixed(2)],
-    ["Daily Allowance", "", "", "", "", totalAllowance.toFixed(2)],
-    ["Trip Total", "", "", "", "", tripTotal.toFixed(2)]
+    ["", "", "", "", "", "", "", ""],
+    ["SUMMARY", "", "", "", "", "", "", ""],
+    ["Total Expenses", "", "", "", "", "", "", totalExpenses.toFixed(2)],
+    ["Daily Allowance", "", "", "", "", "", "", totalAllowance.toFixed(2)],
+    ["Trip Total", "", "", "", "", "", "", tripTotal.toFixed(2)]
   ];
   
   const csvContent = [
