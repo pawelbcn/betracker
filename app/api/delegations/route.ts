@@ -11,7 +11,7 @@ export async function GET() {
     })
     
     // Fetch expenses separately to handle potential receipt_url column issue gracefully
-    let expenses = []
+    let expenses: any[] = []
     try {
       expenses = await prisma.expense.findMany({
         where: {
@@ -24,14 +24,17 @@ export async function GET() {
       // If expenses query fails (e.g., receipt_url column doesn't exist), try without it
       console.warn('Error fetching expenses with receipt_url, trying without:', expenseError)
       try {
-        expenses = await prisma.$queryRaw`
-          SELECT id, delegation_id, date, category, amount, currency, description, created_at, updated_at
-          FROM expenses
-          WHERE delegation_id = ANY(${delegations.map(d => d.id)})
-        `
+        if (delegations.length > 0) {
+          const delegationIds = delegations.map(d => `'${d.id}'`).join(',')
+          expenses = await prisma.$queryRawUnsafe(`
+            SELECT id, delegation_id, date, category, amount, currency, description, created_at, updated_at
+            FROM expenses
+            WHERE delegation_id IN (${delegationIds})
+          `) as any[]
+        }
       } catch (rawError) {
         console.error('Error fetching expenses with raw query:', rawError)
-        // Continue with empty expenses array
+        // Continue with empty expenses array - delegations will still be returned
         expenses = []
       }
     }
