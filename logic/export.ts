@@ -1,5 +1,5 @@
 import { jsPDF } from "jspdf";
-import { Delegation, Expense, calculateTotalExpensesMultiCurrency, calculateDailyAllowanceAsync, getExpenseCategoryInfo } from "./rules";
+import { Delegation, Expense, calculateTotalExpensesMultiCurrency, calculateDailyAllowanceAsync, calculateDelegationTimeBreakdown, getExpenseCategoryInfo } from "./rules";
 import { getExchangeRateForDate, getLastWorkingDay } from "./exchangeRates";
 
 export async function exportToPDF(delegation: Delegation, expenses: Expense[]): Promise<void> {
@@ -195,13 +195,65 @@ export async function exportToCSV(delegation: Delegation, expenses: Expense[]): 
   const totalAllowance = await calculateDailyAllowanceAsync(delegation);
   const tripTotal = totalExpenses + totalAllowance;
   
-  const summaryRows = [
+  // Calculate daily allowance breakdown for CSV
+  const timeBreakdown = calculateDelegationTimeBreakdown(delegation);
+  const allowanceDate = formatDate(delegation.start_date);
+  const allowanceDateObj = new Date(allowanceDate);
+  const lastWorkingDay = getLastWorkingDay(allowanceDateObj);
+  const eurRateDate = formatDate(lastWorkingDay.toISOString());
+  
+  let eurRate: number;
+  try {
+    eurRate = await getExchangeRateForDate('EUR', delegation.start_date);
+  } catch (error) {
+    eurRate = delegation.exchange_rate;
+  }
+  
+  // Build daily allowance breakdown rows
+  const summaryRows: string[][] = [
     ["", "", "", "", "", "", "", ""],
     ["SUMMARY", "", "", "", "", "", "", ""],
-    ["Total Expenses", "", "", "", "", "", "", totalExpenses.toFixed(2)],
-    ["Daily Allowance", "", "", "", "", "", "", totalAllowance.toFixed(2)],
-    ["Trip Total", "", "", "", "", "", "", tripTotal.toFixed(2)]
+    ["Total Expenses", "", "", "", "", "", "", totalExpenses.toFixed(2)]
   ];
+  
+  // Add Daily Allowance with breakdown
+  if (timeBreakdown.hasTimeFields) {
+    const fullDays = timeBreakdown.fullDays;
+    const partialRate = timeBreakdown.partialDayRate;
+    
+    let calculationText = "";
+    if (fullDays > 0) {
+      calculationText += `${fullDays} × ${delegation.daily_allowance} EUR`;
+    }
+    if (partialRate > 0) {
+      if (fullDays > 0) calculationText += " + ";
+      const partialLabel = partialRate === 1/3 ? "1/3" : partialRate === 1/2 ? "1/2" : "1";
+      calculationText += `${partialLabel} × ${delegation.daily_allowance} EUR`;
+    }
+    if (fullDays === 0 && partialRate === 0) {
+      calculationText = "0 days";
+    }
+    calculationText += ` × ${eurRate.toFixed(4)} PLN/EUR`;
+    
+    summaryRows.push(
+      ["Daily Allowance", "", "", "", "", "", "", totalAllowance.toFixed(2)],
+      ["  Calculation", calculationText, "", "", "", "", "", ""],
+      ["  Rate Date", eurRateDate, "(last working day before", allowanceDate, ")", "", "", ""],
+      ["", "", "", "", "", "", "", ""]
+    );
+  } else {
+    const days = timeBreakdown.totalDays;
+    summaryRows.push(
+      ["Daily Allowance", "", "", "", "", "", "", totalAllowance.toFixed(2)],
+      ["  Calculation", `${days} days × ${delegation.daily_allowance} EUR × ${eurRate.toFixed(4)} PLN/EUR`, "", "", "", "", "", ""],
+      ["  Rate Date", eurRateDate, "(last working day before", allowanceDate, ")", "", "", ""],
+      ["", "", "", "", "", "", "", ""]
+    );
+  }
+  
+  summaryRows.push(
+    ["Trip Total", "", "", "", "", "", "", tripTotal.toFixed(2)]
+  );
   
   const csvContent = [
     headers.join(","),
