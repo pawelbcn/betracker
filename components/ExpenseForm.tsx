@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { X, Save, TrendingUp, Calculator, Upload, FileText, Download } from 'lucide-react';
-import { getExchangeRateForDate } from '@/logic/exchangeRates';
+import { getExchangeRateForDate, getLastWorkingDay } from '@/logic/exchangeRates';
 import { ReceiptViewer } from '@/components/ReceiptViewer';
 
 interface ExpenseFormProps {
@@ -32,6 +32,7 @@ export default function ExpenseForm({ isOpen, onClose, onSuccess, delegationId, 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [exchangeRate, setExchangeRate] = useState<number | null>(null);
+  const [rateDate, setRateDate] = useState<string | null>(null);
   const [rateLoading, setRateLoading] = useState(false);
   const [rateError, setRateError] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -76,12 +77,19 @@ export default function ExpenseForm({ isOpen, onClose, onSuccess, delegationId, 
       setRateError(null);
 
       try {
+        // Calculate the actual rate date (last working day before expense date)
+        const expenseDate = new Date(formData.date);
+        const lastWorkingDay = getLastWorkingDay(expenseDate);
+        const rateDateStr = lastWorkingDay.toISOString().split('T')[0];
+        setRateDate(rateDateStr);
+        
         const rate = await getExchangeRateForDate(formData.currency, formData.date);
         setExchangeRate(rate);
       } catch (error) {
         console.error('Error fetching exchange rate:', error);
         setRateError('Failed to fetch exchange rate');
         setExchangeRate(null);
+        setRateDate(null);
       } finally {
         setRateLoading(false);
       }
@@ -375,9 +383,11 @@ export default function ExpenseForm({ isOpen, onClose, onSuccess, delegationId, 
                         <strong>Converted Amount:</strong> {formData.amount.toFixed(2)} {formData.currency} = {(formData.amount * exchangeRate).toFixed(2)} PLN
                       </div>
                     )}
-                    <div className="text-xs text-blue-600">
-                      Rate from last working day before {new Date(formData.date).toLocaleDateString()}
-                    </div>
+                    {rateDate && (
+                      <div className="text-xs text-blue-600">
+                        Exchange rate from {new Date(rateDate).toLocaleDateString()}
+                      </div>
+                    )}
                   </div>
                 ) : null}
               </div>
