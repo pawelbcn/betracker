@@ -1,6 +1,7 @@
 "use client";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { 
   Calculator, 
   Plane, 
@@ -13,11 +14,19 @@ import {
   TrendingUp,
   FileText,
   Clock,
-  Zap
+  Zap,
+  User,
+  Lock
 } from 'lucide-react';
 
 export default function LandingPage() {
   const [activeFeature, setActiveFeature] = useState(0);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   const features = [
     {
@@ -68,6 +77,57 @@ export default function LandingPage() {
     }
   ];
 
+  const migrateData = async () => {
+    try {
+      const response = await fetch('/api/migrate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Migration successful:', data);
+        return true;
+      } else {
+        console.error('Migration failed:', response.status);
+        return false;
+      }
+    } catch (error) {
+      console.error('Migration error:', error);
+      return false;
+    }
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    // Simple authentication check
+    if (username === 'pawel' && password === 'ooo000') {
+      // Try to migrate data first
+      if (typeof window !== 'undefined') {
+        console.log('Attempting to migrate existing data...');
+        await migrateData();
+      }
+      
+      // Store authentication in sessionStorage (only on client side)
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('authenticated', 'true');
+        sessionStorage.setItem('username', username);
+      }
+      
+      // Redirect to main app
+      router.push('/');
+    } else {
+      setError('Nieprawidłowa nazwa użytkownika lub hasło');
+    }
+    
+    setLoading(false);
+  };
+
   return (
     <div className="min-h-screen bg-white">
       {/* Simple header without sidebar */}
@@ -80,12 +140,6 @@ export default function LandingPage() {
             </div>
             <div className="flex items-center space-x-4">
               <Link
-                href="/login"
-                className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-              >
-                Zaloguj się
-              </Link>
-              <Link
                 href="/register"
                 className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700"
               >
@@ -96,32 +150,86 @@ export default function LandingPage() {
         </div>
       </header>
       
-      {/* Hero Section */}
+      {/* Hero Section with Login Form */}
       <section className="relative bg-gradient-to-br from-blue-50 to-indigo-100 py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-              Kalkulator Delegacji Zagranicznej
-              <span className="block text-blue-600">2024</span>
-            </h1>
-            <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              Profesjonalne narzędzie do rozliczania podróży służbowych zgodnie z polskim prawem podatkowym. 
-              Obliczaj diety, koszty delegacji i eksportuj raporty w kilka kliknięć.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            {/* Left side - Hero text */}
+            <div>
+              <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+                Kalkulator Delegacji Zagranicznej
+                <span className="block text-blue-600">2024</span>
+              </h1>
+              <p className="text-xl text-gray-600 mb-8">
+                Profesjonalne narzędzie do rozliczania podróży służbowych zgodnie z polskim prawem podatkowym. 
+                Obliczaj diety, koszty delegacji i eksportuj raporty w kilka kliknięć.
+              </p>
               <Link
                 href="/register"
-                className="inline-flex items-center px-8 py-4 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+                className="inline-flex items-center px-6 py-3 bg-blue-600 text-white text-base font-semibold rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Rozpocznij za darmo
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Link>
-              <Link
-                href="/login"
-                className="inline-flex items-center px-8 py-4 border-2 border-blue-600 text-blue-600 text-lg font-semibold rounded-lg hover:bg-blue-50 transition-colors"
-              >
-                Zaloguj się
-              </Link>
+            </div>
+            
+            {/* Right side - Login Form */}
+            <div className="bg-white rounded-xl shadow-xl p-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Zaloguj się</h2>
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div>
+                  <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
+                    Nazwa użytkownika
+                  </label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      type="text"
+                      id="username"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      required
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Wprowadź nazwę użytkownika"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                    Hasło
+                  </label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      type="password"
+                      id="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Wprowadź hasło"
+                    />
+                  </div>
+                </div>
+                {error && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                    {error}
+                  </div>
+                )}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? 'Logowanie...' : 'Zaloguj się'}
+                </button>
+              </form>
+              <p className="mt-4 text-sm text-gray-600 text-center">
+                Nie masz konta?{' '}
+                <Link href="/register" className="text-blue-600 hover:text-blue-700 font-medium">
+                  Zarejestruj się
+                </Link>
+              </p>
             </div>
           </div>
         </div>
@@ -295,12 +403,6 @@ export default function LandingPage() {
             >
               Rozpocznij za darmo
               <ArrowRight className="ml-2 w-5 h-5" />
-            </Link>
-            <Link
-              href="/login"
-              className="inline-flex items-center px-8 py-4 border-2 border-white text-white text-lg font-semibold rounded-lg hover:bg-white hover:text-blue-600 transition-colors"
-            >
-              Zaloguj się
             </Link>
           </div>
         </div>
