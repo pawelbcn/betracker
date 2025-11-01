@@ -2,6 +2,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, MapPin, Calendar, Utensils, Plus, Edit, Trash2, FileText, Download } from 'lucide-react';
+import { ReceiptViewer } from '@/components/ReceiptViewer';
 import { ExpenseTable } from '@/components/ExpenseTable';
 import { SummaryCard } from '@/components/SummaryCard';
 import ExportMenu from '@/components/ExportMenu';
@@ -112,15 +113,10 @@ function ExpenseRow({ expense, onEdit, onDelete }: {
       <td className="px-3 py-3 whitespace-nowrap text-sm text-neutral-600">
         <div className="flex items-center justify-center gap-1">
           {expense.receipt_url && (
-            <a
-              href={expense.receipt_url}
-              target="_blank"
-              rel="noopener noreferrer"
+            <ReceiptViewer
+              url={expense.receipt_url}
               className="p-1 text-green-600 hover:text-green-800 transition-colors"
-              title="View receipt"
-            >
-              <Download className="w-4 h-4" />
-            </a>
+            />
           )}
           <button
             onClick={() => onEdit(expense)}
@@ -477,15 +473,10 @@ export default function DelegationPage({ params }: { params: { id: string } }) {
                     </div>
                     <div className="flex items-center gap-2">
                       {expense.receipt_url && (
-                        <a
-                          href={expense.receipt_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <ReceiptViewer
+                          url={expense.receipt_url}
                           className="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 transition-colors"
-                          title="View receipt"
-                        >
-                          <Download className="w-4 h-4" />
-                        </a>
+                        />
                       )}
                       <button
                         onClick={() => handleEditExpense(expense)}

@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { X, Save, TrendingUp, Calculator, Upload, FileText, Download } from 'lucide-react';
 import { getExchangeRateForDate } from '@/logic/exchangeRates';
+import { ReceiptViewer } from '@/components/ReceiptViewer';
 
 interface ExpenseFormProps {
   isOpen: boolean;
@@ -421,15 +422,13 @@ export default function ExpenseForm({ isOpen, onClose, onSuccess, delegationId, 
                   <div className="flex items-center gap-2 p-2 bg-neutral-50 border border-neutral-200 rounded">
                     <FileText className="w-4 h-4 text-neutral-600" />
                     <span className="text-sm text-neutral-600">Current receipt:</span>
-                    <a
-                      href={formData.receipt_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800"
+                    <ReceiptViewer
+                      url={formData.receipt_url}
+                      className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 cursor-pointer"
                     >
                       <Download className="w-3 h-3" />
-                      View Receipt
-                    </a>
+                      <span>View Receipt</span>
+                    </ReceiptViewer>
                   </div>
                 )}
                 <p className="text-xs text-neutral-500">
